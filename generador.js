@@ -1,305 +1,1611 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generador de CV y Transcripciones</title>
-<link rel="stylesheet" href="generador.css">
-</head>
-<body>
+// ============================================
+// VARIABLES GLOBALES
+// ============================================
+let currentType = '';
+let currentCVData = null;
+let experienciaCount = 0;
+let educacionCount = 0;
+let cursosCount = 0;
 
-<header>
-<div class="header-content">
-<h1>📄 Generador de Documentos</h1>
-<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙 Modo Oscuro</button>
-</div>
-<p class="subtitle">Crea currículums profesionales y transcripciones con formato APA o legal</p>
-</header>
+// ============================================
+// INICIALIZACIÓN
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+    checkTheme();
+    console.log('✅ Generador cargado correctamente');
+});
 
-<main>
-<!-- PASO 1: TIPO DE DOCUMENTO -->
-<div id="step-type" class="step active">
-<div class="step-header">
-<span class="step-number">1</span>
-<h2>¿Qué tipo de documento necesitas?</h2>
-</div>
-<div class="type-grid">
-<div class="type-card" onclick="selectType('cv')">
-<div class="type-icon">👤</div>
-<h3>Currículum Vitae</h3>
-<p>5 estilos profesionales para elegir</p>
-</div>
-<div class="type-card" onclick="selectType('transcripcion')">
-<div class="type-icon">📝</div>
-<h3>Transcripción</h3>
-<p>Formato APA o Documento Legal</p>
-</div>
-</div>
-</div>
+// ============================================
+// MODO OSCURO/CLARO
+// ============================================
+function toggleTheme() {
+    const body = document.body;
+    const btn = document.getElementById('theme-toggle');
+    body.classList.toggle('dark-mode');
+    if (body.classList.contains('dark-mode')) {
+        btn.textContent = '☀️ Modo Claro';
+        localStorage.setItem('theme', 'dark');
+    } else {
+        btn.textContent = '🌙 Modo Oscuro';
+        localStorage.setItem('theme', 'light');
+    }
+}
 
-<!-- PASO 2: DATOS -->
-<div id="step-data" class="step" style="display:none;">
-<div class="step-header">
-<span class="step-number">2</span>
-<h2 id="data-title">Ingresa los datos de tu CV</h2>
-<button class="btn-back" onclick="goBackToType()">⬅ Cambiar tipo</button>
-</div>
+function checkTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const btn = document.getElementById('theme-toggle');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        if (btn) btn.textContent = '☀️ Modo Claro';
+    }
+}
 
-<!-- FORMULARIO CV -->
-<div id="form-cv" style="display:none;">
+// ============================================
+// NAVEGACIÓN
+// ============================================
+function selectType(type) {
+    currentType = type;
+    document.getElementById('step-type').style.display = 'none';
+    document.getElementById('step-data').style.display = 'block';
 
-<!-- OPCIÓN RÁPIDA: PEGAR CV COMPLETO -->
-<div class="quick-parse-section">
-<h3>📋 Opción Rápida: Pegar CV Completo</h3>
-<p>Pega aquí todo tu currículum y el sistema lo organizará automáticamente:</p>
-<textarea id="cv-texto-completo" rows="12" placeholder="Ejemplo:
+    if (type === 'cv') {
+        document.getElementById('data-title').textContent = 'Ingresa los datos de tu CV';
+        document.getElementById('form-cv').style.display = 'block';
+        document.getElementById('form-transcripcion').style.display = 'none';
+    } else {
+        document.getElementById('data-title').textContent = 'Configura tu Transcripción';
+        document.getElementById('form-cv').style.display = 'none';
+        document.getElementById('form-transcripcion').style.display = 'block';
+    }
+    window.scrollTo(0, 0);
+}
 
-SAMANTHA DE LOS ANGELES SUBERO FLORES
-Técnico Superior Universitario en Mantenimiento
-Cédula: V-28.476.617
-San José de Guanipa, Edo. Anzoátegui
-Teléfono: 0412-497-8773 / 0414-804-1214
+function goBackToType() {
+    document.getElementById('step-data').style.display = 'none';
+    document.getElementById('step-type').style.display = 'block';
+    window.scrollTo(0, 0);
+}
 
-PERFIL PROFESIONAL
-TSU en Mantenimiento con experiencia en áreas administrativas...
+function goBackToEdit() {
+    // NO borrar los datos - solo volver al formulario
+    document.getElementById('step-preview').style.display = 'none';
+    document.getElementById('step-data').style.display = 'block';
+    window.scrollTo(0, 0);
+}
 
-FORMACIÓN ACADÉMICA
-Técnico Superior Universitario en Mantenimiento - UPTJAA
+function startOver() {
+    if (confirm('¿Seguro que quieres empezar un nuevo documento? Se perderán los datos.')) {
+        document.getElementById('step-preview').style.display = 'none';
+        document.getElementById('step-type').style.display = 'block';
+        document.getElementById('form-cv').style.display = 'none';
+        document.getElementById('form-transcripcion').style.display = 'none';
+        currentType = '';
+        currentCVData = null;
+        window.scrollTo(0, 0);
+    }
+}
 
-EXPERIENCIA LABORAL
-Departamento Administrativo - Mantenimiento Mayor PDVSA
-Gestión documental técnica y operativa...
+function toggleSecciones() {
+    const completo = document.getElementById('cv-completo').checked;
+    const select = document.getElementById('secciones-select');
+    select.style.display = completo ? 'none' : 'block';
+}
 
-HABILIDADES Y CONOCIMIENTOS
-Software: Manejo avanzado de Microsoft Excel, Word y PowerPoint
+// ============================================
+// AGREGAR CAMPOS DINÁMICOS
+// ============================================
+function addExperiencia() {
+    experienciaCount++;
+    const container = document.getElementById('experiencia-list');
+    const div = document.createElement('div');
+    div.className = 'item-row';
+    div.id = 'exp-' + experienciaCount;
+    div.innerHTML = '<button class="btn-remove" onclick="removeItem(\'exp-' + experienciaCount + '\')">✕</button>' +
+        '<div class="form-grid">' +
+        '<div class="form-group"><label>Empresa</label><input type="text" class="exp-empresa" placeholder="Ej: Empresa XYZ"></div>' +
+        '<div class="form-group"><label>Cargo</label><input type="text" class="exp-cargo" placeholder="Ej: Gerente"></div>' +
+        '<div class="form-group"><label>Fecha Inicio</label><input type="text" class="exp-inicio" placeholder="Ej: 2020"></div>' +
+        '<div class="form-group"><label>Fecha Fin</label><input type="text" class="exp-fin" placeholder="Ej: Actualidad"></div>' +
+        '</div>' +
+        '<div class="form-group"><label>Descripción</label><textarea class="exp-desc" rows="3" placeholder="Funciones..."></textarea></div>';
+    container.appendChild(div);
+}
 
-CURSOS REALIZADOS
-Atención al Cliente - Certificación complementaria"></textarea>
-<button class="btn-parse" onclick="parsearCVCompleto()">
-🤖 Analizar y Organizar Automáticamente
-</button>
-<p class="parse-hint">💡 El sistema detectará: datos personales, perfil, experiencia, educación, habilidades y cursos</p>
-</div>
+function addEducacion() {
+    educacionCount++;
+    const container = document.getElementById('educacion-list');
+    const div = document.createElement('div');
+    div.className = 'item-row';
+    div.id = 'edu-' + educacionCount;
+    div.innerHTML = '<button class="btn-remove" onclick="removeItem(\'edu-' + educacionCount + '\')">✕</button>' +
+        '<div class="form-grid">' +
+        '<div class="form-group"><label>Institución</label><input type="text" class="edu-inst" placeholder="Ej: Universidad"></div>' +
+        '<div class="form-group"><label>Título</label><input type="text" class="edu-titulo" placeholder="Ej: Licenciatura"></div>' +
+        '<div class="form-group"><label>Inicio</label><input type="text" class="edu-inicio" placeholder="Ej: 2015"></div>' +
+        '<div class="form-group"><label>Fin</label><input type="text" class="edu-fin" placeholder="Ej: 2019"></div>' +
+        '</div>';
+    container.appendChild(div);
+}
 
-<hr class="divider">
-<p class="manual-hint">— O llena manualmente cada sección —</p>
+function addCurso() {
+    cursosCount++;
+    const container = document.getElementById('cursos-list');
+    const div = document.createElement('div');
+    div.className = 'item-row';
+    div.id = 'cur-' + cursosCount;
+    div.innerHTML = '<button class="btn-remove" onclick="removeItem(\'cur-' + cursosCount + '\')">✕</button>' +
+        '<div class="form-grid">' +
+        '<div class="form-group"><label>Nombre del Curso</label><input type="text" class="cur-nombre" placeholder="Ej: Excel"></div>' +
+        '<div class="form-group"><label>Institución</label><input type="text" class="cur-inst" placeholder="Ej: Google"></div>' +
+        '<div class="form-group"><label>Año</label><input type="text" class="cur-anio" placeholder="Ej: 2023"></div>' +
+        '</div>';
+    container.appendChild(div);
+}
 
-<div class="form-section">
-<h3>👤 Datos Personales</h3>
-<div class="form-grid">
-<div class="form-group">
-<label>Nombre Completo *</label>
-<input type="text" id="cv-nombre" placeholder="Ej: Juan Pérez García">
-</div>
-<div class="form-group">
-<label>Teléfono</label>
-<input type="tel" id="cv-telefono" placeholder="Ej: 555-123-4567">
-</div>
-<div class="form-group">
-<label>Email</label>
-<input type="email" id="cv-email" placeholder="Ej: juan@email.com">
-</div>
-<div class="form-group">
-<label>Ciudad</label>
-<input type="text" id="cv-ciudad" placeholder="Ej: Ciudad de México">
-</div>
-<div class="form-group">
-<label>LinkedIn / Web</label>
-<input type="text" id="cv-linkedin" placeholder="Ej: linkedin.com/in/juan">
-</div>
-<div class="form-group">
-<label>Foto (URL opcional)</label>
-<input type="text" id="cv-foto" placeholder="https://ejemplo.com/foto.jpg">
-</div>
-</div>
-</div>
+function removeItem(id) {
+    const item = document.getElementById(id);
+    if (item) item.remove();
+}
 
-<div class="form-section">
-<h3>🎯 Perfil Profesional</h3>
-<textarea id="cv-perfil" rows="4" placeholder="Breve descripción de tu perfil profesional..."></textarea>
-</div>
+// ============================================
+// FUNCIÓN PARA ANALIZAR CV (CORREGIDA)
+// ============================================
+function parsearCVCompleto() {
+    const texto = document.getElementById('cv-texto-completo').value.trim();
+    
+    console.log('🔍 Iniciando análisis...');
+    
+    if (!texto) {
+        alert('❌ Por favor pega el contenido de tu CV primero');
+        return;
+    }
 
-<div class="form-section">
-<h3>💼 Experiencia Laboral</h3>
-<div id="experiencia-list"></div>
-<button type="button" class="btn-add" onclick="addExperiencia()">➕ Agregar Experiencia</button>
-</div>
+    const datos = {
+        nombre: '', telefono: '', email: '', ciudad: '', linkedin: '',
+        perfil: '', experiencia: [], educacion: [], cursos: [],
+        habilidades: '', idiomas: ''
+    };
 
-<div class="form-section">
-<h3>🎓 Educación</h3>
-<div id="educacion-list"></div>
-<button type="button" class="btn-add" onclick="addEducacion()">➕ Agregar Educación</button>
-</div>
+    const lineas = texto.split('\n').map(l => l.trim()).filter(l => l);
+    
+    let seccionActual = 'inicio';
+    let bufferExp = null;
+    let bufferEdu = null;
 
-<div class="form-section">
-<h3>📚 Cursos</h3>
-<div id="cursos-list"></div>
-<button type="button" class="btn-add" onclick="addCurso()">➕ Agregar Curso</button>
-</div>
+    const keywords = {
+        perfil: ['PERFIL PROFESIONAL', 'PERFIL', 'OBJETIVO', 'SOBRE MÍ', 'SOBRE MI'],
+        experiencia: ['EXPERIENCIA LABORAL', 'EXPERIENCIA PROFESIONAL', 'EXPERIENCIA'],
+        educacion: ['FORMACIÓN ACADÉMICA', 'FORMACION ACADEMICA', 'EDUCACIÓN', 'EDUCACION', 'ESTUDIOS'],
+        habilidades: ['HABILIDADES', 'SKILLS', 'COMPETENCIAS', 'DESTREZAS'],
+        cursos: ['CURSOS', 'CURSOS REALIZADOS', 'CERTIFICACIONES', 'CAPACITACIONES'],
+        idiomas: ['IDIOMAS', 'LANGUAGES']
+    };
 
-<div class="form-section">
-<h3>🛠️ Habilidades</h3>
-<textarea id="cv-habilidades" rows="3" placeholder="Ej: Excel, Liderazgo, Inglés, Ventas"></textarea>
-</div>
+    for (let i = 0; i < lineas.length; i++) {
+        const linea = lineas[i];
+        const lineaUpper = linea.toUpperCase();
+        let esInicioSeccion = false;
 
-<div class="form-section">
-<h3>🌐 Idiomas</h3>
-<textarea id="cv-idiomas" rows="2" placeholder="Ej: Español (Nativo), Inglés (Avanzado)"></textarea>
-</div>
+        for (const key in keywords) {
+            const words = keywords[key];
+            for (let j = 0; j < words.length; j++) {
+                if (lineaUpper.includes(words[j])) {
+                    if (bufferExp) {
+                        datos.experiencia.push(bufferExp);
+                        bufferExp = null;
+                    }
+                    if (bufferEdu) {
+                        datos.educacion.push(bufferEdu);
+                        bufferEdu = null;
+                    }
+                    seccionActual = key;
+                    esInicioSeccion = true;
+                    break;
+                }
+            }
+            if (esInicioSeccion) break;
+        }
 
-<div class="form-section">
-<h3>⚙️ Opciones</h3>
-<label class="checkbox-label">
-<input type="checkbox" id="cv-completo" checked onchange="toggleSecciones()">
-<span>Mostrar CV Completo (todas las secciones)</span>
-</label>
-<div id="secciones-select" style="display:none; margin-top:15px;">
-<p style="font-weight:bold; margin-bottom:10px;">Selecciona secciones:</p>
-<label class="checkbox-label"><input type="checkbox" class="seccion-check" value="perfil" checked> Perfil</label>
-<label class="checkbox-label"><input type="checkbox" class="seccion-check" value="experiencia" checked> Experiencia</label>
-<label class="checkbox-label"><input type="checkbox" class="seccion-check" value="educacion" checked> Educación</label>
-<label class="checkbox-label"><input type="checkbox" class="seccion-check" value="cursos" checked> Cursos</label>
-<label class="checkbox-label"><input type="checkbox" class="seccion-check" value="habilidades" checked> Habilidades</label>
-<label class="checkbox-label"><input type="checkbox" class="seccion-check" value="idiomas" checked> Idiomas</label>
-</div>
-</div>
+        if (esInicioSeccion) continue;
 
-<div class="form-section">
-<h3>🎨 Estilo del CV</h3>
-<div class="style-selector">
-<label class="style-option">
-<input type="radio" name="cv-style" value="moderno" checked>
-<span class="style-name">Moderno</span>
-<span class="style-desc">Barra lateral azul</span>
-</label>
-<label class="style-option">
-<input type="radio" name="cv-style" value="clasico">
-<span class="style-name">Clásico</span>
-<span class="style-desc">Blanco y negro</span>
-</label>
-<label class="style-option">
-<input type="radio" name="cv-style" value="creativo">
-<span class="style-name">Creativo</span>
-<span class="style-desc">Colores naranja</span>
-</label>
-<label class="style-option">
-<input type="radio" name="cv-style" value="minimalista">
-<span class="style-name">Minimalista</span>
-<span class="style-desc">Limpio y elegante</span>
-</label>
-<label class="style-option">
-<input type="radio" name="cv-style" value="profesional">
-<span class="style-name">Profesional</span>
-<span class="style-desc">Azul corporativo</span>
-</label>
-</div>
-</div>
+        if (seccionActual === 'inicio') {
+            if (!datos.nombre && i === 0) {
+                datos.nombre = linea;
+            } else if (linea.match(/04\d{2}-?\d{7}/) || linea.toLowerCase().includes('teléfono') || linea.toLowerCase().includes('telefono')) {
+                datos.telefono = linea.replace(/.*?:\s*/i, '').trim();
+            } else if (linea.includes('@')) {
+                datos.email = linea.replace(/.*?:\s*/i, '').trim();
+            } else if (linea.toLowerCase().match(/ciudad|ubicación|direccion|edo\.|estado/)) {
+                datos.ciudad = linea.replace(/.*?:\s*/i, '').trim();
+            } else if (linea.toLowerCase().match(/linkedin|web|portfolio/)) {
+                datos.linkedin = linea.replace(/.*?:\s*/i, '').trim();
+            } else if (!datos.ciudad && linea.match(/edo\.|estado|anzoategui|guanipa/i)) {
+                datos.ciudad = linea;
+            }
+        } else if (seccionActual === 'perfil') {
+            datos.perfil += linea + ' ';
+        } else if (seccionActual === 'experiencia') {
+            if (linea.includes(' - ') || (linea.length < 80 && lineaUpper === linea && linea.length > 5)) {
+                if (bufferExp) datos.experiencia.push(bufferExp);
+                const partes = linea.split(' - ');
+                bufferExp = {
+                    empresa: partes[0] ? partes[0].trim() : '',
+                    cargo: partes[1] ? partes[1].trim() : linea,
+                    fecha: '',
+                    descripcion: ''
+                };
+            } else if (bufferExp) {
+                if (linea.match(/\d{4}/) && !bufferExp.fecha) {
+                    bufferExp.fecha = linea;
+                } else {
+                    bufferExp.descripcion += linea + ' ';
+                }
+            } else {
+                bufferExp = { empresa: '', cargo: linea, fecha: '', descripcion: '' };
+            }
+        } else if (seccionActual === 'educacion') {
+            if (linea.includes(' - ') || linea.match(/\d{4}/)) {
+                if (bufferEdu) datos.educacion.push(bufferEdu);
+                const partes = linea.split(' - ');
+                bufferEdu = {
+                    inst: partes[1] ? partes[1].trim() : '',
+                    titulo: partes[0] ? partes[0].trim() : linea,
+                    inicio: '',
+                    fin: ''
+                };
+            } else if (bufferEdu) {
+                bufferEdu.titulo += ' ' + linea;
+            } else {
+                bufferEdu = { inst: '', titulo: linea, inicio: '', fin: '' };
+            }
+        } else if (seccionActual === 'habilidades') {
+            datos.habilidades += linea + ', ';
+        } else if (seccionActual === 'cursos') {
+            if (linea.includes(' - ') || linea.match(/\d{4}/)) {
+                const partes = linea.split(' - ');
+                const anioMatch = linea.match(/\d{4}/);
+                datos.cursos.push({
+                    nombre: partes[0] ? partes[0].trim() : linea,
+                    inst: partes[1] ? partes[1].replace(/\(\d{4}\)/g, '').trim() : '',
+                    anio: anioMatch ? anioMatch[0] : ''
+                });
+            } else {
+                datos.cursos.push({ nombre: linea, inst: '', anio: '' });
+            }
+        } else if (seccionActual === 'idiomas') {
+            datos.idiomas += linea + ', ';
+        }
+    }
 
-<!-- UN SOLO BOTÓN GENERAR -->
-<button class="btn-generate" onclick="generateDocument()">🎨 Generar Documento</button>
-</div>
+    if (bufferExp) datos.experiencia.push(bufferExp);
+    if (bufferEdu) datos.educacion.push(bufferEdu);
 
-<!-- FORMULARIO TRANSCRIPCIÓN -->
-<div id="form-transcripcion" style="display:none;">
-<div class="form-section">
-<h3>⚙️ Configuración</h3>
-<div class="form-grid">
-<div class="form-group">
-<label>Tipo de Formato</label>
-<select id="trans-tipo">
-<option value="apa">📚 Normas APA</option>
-<option value="legal">⚖️ Documento Legal</option>
-</select>
-</div>
-<div class="form-group">
-<label>Tamaño de Fuente</label>
-<select id="trans-fuente">
-<option value="11">11 pt</option>
-<option value="12" selected>12 pt</option>
-</select>
-</div>
-<div class="form-group">
-<label>Interlineado</label>
-<select id="trans-interlineado">
-<option value="1">Simple (1.0)</option>
-<option value="1.5">1.5 líneas</option>
-<option value="2" selected>Doble (2.0)</option>
-</select>
-</div>
-</div>
-</div>
+    console.log('Datos extraídos:', datos);
 
-<div class="form-section">
-<h3>📋 Datos del Documento</h3>
-<div class="form-grid">
-<div class="form-group">
-<label>Título</label>
-<input type="text" id="trans-titulo" placeholder="Ej: Entrevista">
-</div>
-<div class="form-group">
-<label>Fecha</label>
-<input type="date" id="trans-fecha">
-</div>
-<div class="form-group">
-<label>Lugar</label>
-<input type="text" id="trans-lugar" placeholder="Ej: Oficina">
-</div>
-<div class="form-group">
-<label>Participantes</label>
-<input type="text" id="trans-participantes" placeholder="Ej: Juan, María">
-</div>
-</div>
-</div>
+    // LLENAR EL FORMULARIO
+    if (datos.nombre) document.getElementById('cv-nombre').value = datos.nombre;
+    if (datos.telefono) document.getElementById('cv-telefono').value = datos.telefono;
+    if (datos.email) document.getElementById('cv-email').value = datos.email;
+    if (datos.ciudad) document.getElementById('cv-ciudad').value = datos.ciudad;
+    if (datos.linkedin) document.getElementById('cv-linkedin').value = datos.linkedin;
+    if (datos.perfil.trim()) document.getElementById('cv-perfil').value = datos.perfil.trim();
+    if (datos.habilidades.trim()) document.getElementById('cv-habilidades').value = datos.habilidades.trim();
+    if (datos.idiomas.trim()) document.getElementById('cv-idiomas').value = datos.idiomas.trim();
 
-<div class="form-section">
-<h3>📝 Contenido</h3>
-<p style="color:var(--text-secondary); margin-bottom:10px; font-size:0.9rem;">
-<strong>Legal:</strong> Usa formato NOMBRE: texto (Ej: ABOGADO: ¿Cuál es su nombre?)
-</p>
-<textarea id="trans-contenido" rows="15" placeholder="Pega aquí el contenido..."></textarea>
-</div>
-</div>
+    // Llenar experiencias
+    datos.experiencia.forEach(function(exp) {
+        if (exp.cargo || exp.empresa) {
+            addExperiencia();
+            const items = document.querySelectorAll('#experiencia-list .item-row');
+            const last = items[items.length - 1];
+            if (exp.empresa) last.querySelector('.exp-empresa').value = exp.empresa;
+            if (exp.cargo) last.querySelector('.exp-cargo').value = exp.cargo;
+            if (exp.fecha) last.querySelector('.exp-inicio').value = exp.fecha;
+            if (exp.descripcion) last.querySelector('.exp-desc').value = exp.descripcion.trim();
+        }
+    });
 
-<!-- UN SOLO BOTÓN GENERAR PARA TRANSCRIPCIÓN -->
-<button class="btn-generate" onclick="generateDocument()">🎨 Generar Documento</button>
-</div>
+    // Llenar educación
+    datos.educacion.forEach(function(edu) {
+        if (edu.titulo || edu.inst) {
+            addEducacion();
+            const items = document.querySelectorAll('#educacion-list .item-row');
+            const last = items[items.length - 1];
+            if (edu.titulo) last.querySelector('.edu-titulo').value = edu.titulo;
+            if (edu.inst) last.querySelector('.edu-inst').value = edu.inst;
+        }
+    });
 
-<!-- PASO 3: VISTA PREVIA -->
-<div id="step-preview" class="step" style="display:none;">
-<div class="step-header">
-<span class="step-number">3</span>
-<h2>Vista Previa del Documento</h2>
-</div>
+    // Llenar cursos
+    datos.cursos.forEach(function(cur) {
+        if (cur.nombre) {
+            addCurso();
+            const items = document.querySelectorAll('#cursos-list .item-row');
+            const last = items[items.length - 1];
+            if (cur.nombre) last.querySelector('.cur-nombre').value = cur.nombre;
+            if (cur.inst) last.querySelector('.cur-inst').value = cur.inst;
+            if (cur.anio) last.querySelector('.cur-anio').value = cur.anio;
+        }
+    });
 
-<div class="preview-controls">
-<button class="btn-back" onclick="goBackToEdit()">✏️ Editar Datos</button>
-<button class="btn-new" onclick="startOver()">🔄 Nuevo Documento</button>
-</div>
+    alert('✅ ¡CV analizado! Revisa los campos abajo y haz scroll para verlos');
+    
+    document.getElementById('cv-texto-completo').value = '';
+    
+    setTimeout(function() {
+        document.querySelector('#form-cv .form-section').scrollIntoView({ behavior: 'smooth' });
+    }, 300);
+}
 
-<!-- SELECTOR DE ESTILOS EN VISTA PREVIA -->
-<div class="style-changer">
-<h3>🎨 Cambiar Estilo:</h3>
-<div class="style-selector-inline">
-<button class="style-btn" onclick="changeStyle('moderno')">Moderno</button>
-<button class="style-btn" onclick="changeStyle('clasico')">Clásico</button>
-<button class="style-btn" onclick="changeStyle('creativo')">Creativo</button>
-<button class="style-btn" onclick="changeStyle('minimalista')">Minimalista</button>
-<button class="style-btn" onclick="changeStyle('profesional')">Profesional</button>
-</div>
-</div>
+// ============================================
+// RECOLECTAR DATOS
+// ============================================
+function recolectarDatosCV() {
+    const data = {
+        nombre: document.getElementById('cv-nombre').value || 'Tu Nombre',
+        telefono: document.getElementById('cv-telefono').value,
+        email: document.getElementById('cv-email').value,
+        ciudad: document.getElementById('cv-ciudad').value,
+        linkedin: document.getElementById('cv-linkedin').value,
+        foto: document.getElementById('cv-foto').value,
+        perfil: document.getElementById('cv-perfil').value,
+        habilidades: document.getElementById('cv-habilidades').value,
+        idiomas: document.getElementById('cv-idiomas').value,
+        experiencias: [],
+        educaciones: [],
+        cursos: []
+    };
 
-<div class="download-buttons">
-<button class="btn-download btn-pdf" onclick="downloadPDF()">📄 Descargar PDF</button>
-<button class="btn-download btn-word" onclick="downloadWord()">📝 Descargar Word</button>
-</div>
+    document.querySelectorAll('#experiencia-list .item-row').forEach(function(row) {
+        data.experiencias.push({
+            empresa: row.querySelector('.exp-empresa').value,
+            cargo: row.querySelector('.exp-cargo').value,
+            inicio: row.querySelector('.exp-inicio').value,
+            fin: row.querySelector('.exp-fin').value,
+            desc: row.querySelector('.exp-desc').value
+        });
+    });
 
-<div id="document-preview" class="document-preview">
-<!-- Aquí se renderiza el documento -->
-</div>
-</div>
+    document.querySelectorAll('#educacion-list .item-row').forEach(function(row) {
+        data.educaciones.push({
+            inst: row.querySelector('.edu-inst').value,
+            titulo: row.querySelector('.edu-titulo').value,
+            inicio: row.querySelector('.edu-inicio').value,
+            fin: row.querySelector('.edu-fin').value
+        });
+    });
 
-</main>
+    document.querySelectorAll('#cursos-list .item-row').forEach(function(row) {
+        data.cursos.push({
+            nombre: row.querySelector('.cur-nombre').value,
+            inst: row.querySelector('.cur-inst').value,
+            anio: row.querySelector('.cur-anio').value
+        });
+    });
 
-<script src="generador.js"></script>
-</body>
-</html>
+    const completo = document.getElementById('cv-completo').checked;
+    let secciones = ['perfil', 'experiencia', 'educacion', 'cursos', 'habilidades', 'idiomas'];
+    if (!completo) {
+        secciones = [];
+        document.querySelectorAll('.seccion-check:checked').forEach(function(cb) {
+            secciones.push(cb.value);
+        });
+    }
+    data.secciones = secciones;
+
+    return data;
+}
+
+// ============================================
+// GENERAR DOCUMENTO
+// ============================================
+function generateDocument() {
+    console.log('Generando documento...');
+    
+    if (currentType === 'cv') {
+        currentCVData = recolectarDatosCV();
+        const styleRadio = document.querySelector('input[name="cv-style"]:checked');
+        const estilo = styleRadio ? styleRadio.value : 'moderno';
+        currentCVData.estilo = estilo;
+        
+        console.log('Datos del CV:', currentCVData);
+        
+        let html = '';
+        switch(estilo) {
+            case 'moderno': html = generateCVModerno(currentCVData); break;
+            case 'clasico': html = generateCVClasico(currentCVData); break;
+            case 'creativo': html = generateCVCreativo(currentCVData); break;
+            case 'minimalista': html = generateCVMinimalista(currentCVData); break;
+            case 'profesional': html = generateCVProfesional(currentCVData); break;
+        }
+        
+        document.getElementById('document-preview').innerHTML = html;
+        console.log('CV generado correctamente');
+    } else {
+        generateTranscripcion();
+    }
+    
+    document.getElementById('step-data').style.display = 'none';
+    document.getElementById('step-preview').style.display = 'block';
+    window.scrollTo(0, 0);
+}
+
+// ============================================
+// CAMBIAR ESTILO
+// ============================================
+function changeStyle(nuevoEstilo) {
+    if (!currentCVData) {
+        alert('No hay datos del CV');
+        return;
+    }
+    
+    currentCVData.estilo = nuevoEstilo;
+    
+    let html = '';
+    switch(nuevoEstilo) {
+        case 'moderno': html = generateCVModerno(currentCVData); break;
+        case 'clasico': html = generateCVClasico(currentCVData); break;
+        case 'creativo': html = generateCVCreativo(currentCVData); break;
+        case 'minimalista': html = generateCVMinimalista(currentCVData); break;
+        case 'profesional': html = generateCVProfesional(currentCVData); break;
+    }
+    
+    document.getElementById('document-preview').innerHTML = html;
+    alert('✨ Estilo cambiado a: ' + nuevoEstilo.charAt(0).toUpperCase() + nuevoEstilo.slice(1));
+}
+
+// ============================================
+// FUNCIONES DE GENERACIÓN DE CV
+// ============================================
+function generateCVModerno(d) {
+    let sidebar = '<div class="cv-sidebar">';
+    if (d.foto) sidebar += '<img src="' + d.foto + '" style="width:150px; height:150px; border-radius:50%; object-fit:cover; margin-bottom:20px; border: 4px solid white;">';
+    sidebar += '<h2 style="margin-bottom:20px;">' + d.nombre + '</h2>';
+    if (d.telefono) sidebar += '<p>📞 ' + d.telefono + '</p>';
+    if (d.email) sidebar += '<p>✉️ ' + d.email + '</p>';
+    if (d.ciudad) sidebar += '<p>📍 ' + d.ciudad + '</p>';
+    if (d.linkedin) sidebar += '<p>🔗 ' + d.linkedin + '</p>';
+    
+    if (d.secciones.indexOf('habilidades') !== -1 && d.habilidades) {
+        sidebar += '<div style="margin-top:30px;"><h3 style="border-bottom:2px solid white; padding-bottom:10px; margin-bottom:15px;">Habilidades</h3><ul style="list-style:none; padding:0;">';
+        d.habilidades.split(',').forEach(function(h) { if (h.trim()) sidebar += '<li style="margin-bottom:8px;">• ' + h.trim() + '</li>'; });
+        sidebar += '</ul></div>';
+    }
+    
+    if (d.secciones.indexOf('idiomas') !== -1 && d.idiomas) {
+        sidebar += '<div style="margin-top:30px;"><h3 style="border-bottom:2px solid white; padding-bottom:10px; margin-bottom:15px;">Idiomas</h3><ul style="list-style:none; padding:0;">';
+        d.idiomas.split(',').forEach(function(i) { if (i.trim()) sidebar += '<li style="margin-bottom:8px;">• ' + i.trim() + '</li>'; });
+        sidebar += '</ul></div>';
+    }
+    sidebar += '</div>';
+    
+    let main = '<div class="cv-main">';
+    
+    if (d.secciones.indexOf('perfil') !== -1 && d.perfil) {
+        main += '<div style="margin-bottom:30px;"><h2 style="color:#3b82f6; border-bottom:3px solid #3b82f6; padding-bottom:10px; margin-bottom:15px;">Perfil Profesional</h2><p style="line-height:1.6;">' + d.perfil + '</p></div>';
+    }
+    
+    if (d.secciones.indexOf('experiencia') !== -1 && d.experiencias.length > 0) {
+        main += '<div style="margin-bottom:30px;"><h2 style="color:#3b82f6; border-bottom:3px solid #3b82f6; padding-bottom:10px; margin-bottom:15px;">Experiencia Laboral</h2>';
+        d.experiencias.forEach(function(e) {
+            main += '<div style="margin-bottom:20px;"><h3 style="margin-bottom:5px;">' + e.cargo + '</h3><p style="color:#6b7280; font-style:italic; margin-bottom:10px;">' + e.empresa + ' | ' + e.inicio + ' - ' + e.fin + '</p><p style="line-height:1.6;">' + e.desc + '</p></div>';
+        });
+        main += '</div>';
+    }
+    
+    if (d.secciones.indexOf('educacion') !== -1 && d.educaciones.length > 0) {
+        main += '<div style="margin-bottom:30px;"><h2 style="color:#3b82f6; border-bottom:3px solid #3b82f6; padding-bottom:10px; margin-bottom:15px;">Educación</h2>';
+        d.educaciones.forEach(function(e) {
+            main += '<div style="margin-bottom:15px;"><h3 style="margin-bottom:5px;">' + e.titulo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.inst + ' | ' + e.inicio + ' - ' + e.fin + '</p></div>';
+        });
+        main += '</div>';
+    }
+    
+    if (d.secciones.indexOf('cursos') !== -1 && d.cursos.length > 0) {
+        main += '<div style="margin-bottom:30px;"><h2 style="color:#3b82f6; border-bottom:3px solid #3b82f6; padding-bottom:10px; margin-bottom:15px;">Cursos</h2>';
+        d.cursos.forEach(function(c) {
+            main += '<div style="margin-bottom:15px;"><h3 style="margin-bottom:5px;">' + c.nombre + '</h3><p style="color:#6b7280; font-style:italic;">' + c.inst + ' | ' + c.anio + '</p></div>';
+        });
+        main += '</div>';
+    }
+    
+    main += '</div>';
+    return '<div class="cv-moderno">' + sidebar + main + '</div>';
+}
+
+function generateCVClasico(d) {
+    let html = '<div class="cv-clasico"><div class="cv-header"><h1 style="font-size:2rem; margin-bottom:10px;">' + d.nombre + '</h1><div style="color:#6b7280;">';
+    if (d.telefono) html += '<span>' + d.telefono + '</span>';
+    if (d.email) html += '<span> | ' + d.email + '</span>';
+    if (d.ciudad) html += '<span> | ' + d.ciudad + '</span>';
+    html += '</div></div>';
+    
+    if (d.secciones.indexOf('perfil') !== -1 && d.perfil) {
+        html += '<div style="margin-bottom:30px; text-align:left;"><h2>PERFIL PROFESIONAL</h2><p style="line-height:1.6;">' + d.perfil + '</p></div>';
+    }
+    
+    if (d.secciones.indexOf('experiencia') !== -1 && d.experiencias.length > 0) {
+        html += '<div style="margin-bottom:30px; text-align:left;"><h2>EXPERIENCIA LABORAL</h2>';
+        d.experiencias.forEach(function(e) {
+            html += '<div style="margin-bottom:20px;"><h3>' + e.cargo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.empresa + ' | ' + e.inicio + ' - ' + e.fin + '</p><p style="line-height:1.6;">' + e.desc + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('educacion') !== -1 && d.educaciones.length > 0) {
+        html += '<div style="margin-bottom:30px; text-align:left;"><h2>EDUCACIÓN</h2>';
+        d.educaciones.forEach(function(e) {
+            html += '<div style="margin-bottom:15px;"><h3>' + e.titulo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.inst + ' | ' + e.inicio + ' - ' + e.fin + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('cursos') !== -1 && d.cursos.length > 0) {
+        html += '<div style="margin-bottom:30px; text-align:left;"><h2>CURSOS</h2>';
+        d.cursos.forEach(function(c) {
+            html += '<div style="margin-bottom:15px;"><h3>' + c.nombre + '</h3><p style="color:#6b7280; font-style:italic;">' + c.inst + ' | ' + c.anio + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('habilidades') !== -1 && d.habilidades) {
+        html += '<div style="margin-bottom:30px; text-align:left;"><h2>HABILIDADES</h2><p>' + d.habilidades + '</p></div>';
+    }
+    
+    if (d.secciones.indexOf('idiomas') !== -1 && d.idiomas) {
+        html += '<div style="margin-bottom:30px; text-align:left;"><h2>IDIOMAS</h2><p>' + d.idiomas + '</p></div>';
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+function generateCVCreativo(d) {
+    let html = '<div class="cv-creativo"><div class="cv-header"><h1 style="font-size:2.5rem; margin-bottom:10px;">' + d.nombre + '</h1><div style="font-size:1.1rem;">';
+    if (d.telefono) html += '<span>📞 ' + d.telefono + '</span>';
+    if (d.email) html += '<span> | ✉️ ' + d.email + '</span>';
+    if (d.ciudad) html += '<span> | 📍 ' + d.ciudad + '</span>';
+    html += '</div></div>';
+    
+    if (d.secciones.indexOf('perfil') !== -1 && d.perfil) {
+        html += '<div style="margin-bottom:30px;"><h2 style="color:#f59e0b;">Sobre Mí</h2><p style="line-height:1.6;">' + d.perfil + '</p></div>';
+    }
+    
+    if (d.secciones.indexOf('experiencia') !== -1 && d.experiencias.length > 0) {
+        html += '<div style="margin-bottom:30px;"><h2 style="color:#f59e0b;">Experiencia</h2>';
+        d.experiencias.forEach(function(e) {
+            html += '<div style="margin-bottom:20px; padding-left:15px; border-left:4px solid #f59e0b;"><h3>' + e.cargo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.empresa + ' | ' + e.inicio + ' - ' + e.fin + '</p><p style="line-height:1.6;">' + e.desc + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('educacion') !== -1 && d.educaciones.length > 0) {
+        html += '<div style="margin-bottom:30px;"><h2 style="color:#f59e0b;">Educación</h2>';
+        d.educaciones.forEach(function(e) {
+            html += '<div style="margin-bottom:15px; padding-left:15px; border-left:4px solid #f59e0b;"><h3>' + e.titulo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.inst + ' | ' + e.inicio + ' - ' + e.fin + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('cursos') !== -1 && d.cursos.length > 0) {
+        html += '<div style="margin-bottom:30px;"><h2 style="color:#f59e0b;">Cursos</h2>';
+        d.cursos.forEach(function(c) {
+            html += '<div style="margin-bottom:15px; padding-left:15px; border-left:4px solid #f59e0b;"><h3>' + c.nombre + '</h3><p style="color:#6b7280; font-style:italic;">' + c.inst + ' | ' + c.anio + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('habilidades') !== -1 && d.habilidades) {
+        html += '<div style="margin-bottom:30px;"><h2 style="color:#f59e0b;">Habilidades</h2><div style="display:flex; flex-wrap:wrap; gap:10px;">';
+        d.habilidades.split(',').forEach(function(h) { if (h.trim()) html += '<span style="background:#f59e0b; color:white; padding:5px 15px; border-radius:20px;">' + h.trim() + '</span>'; });
+        html += '</div></div>';
+    }
+    
+    if (d.secciones.indexOf('idiomas') !== -1 && d.idiomas) {
+        html += '<div style="margin-bottom:30px;"><h2 style="color:#f59e0b;">Idiomas</h2><p>' + d.idiomas + '</p></div>';
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+function generateCVMinimalista(d) {
+    let html = '<div class="cv-minimalista"><div class="cv-header"><h1 style="font-size:2.5rem; font-weight:300; margin-bottom:10px;">' + d.nombre + '</h1><div style="color:#6b7280;">';
+    if (d.telefono) html += '<span>' + d.telefono + '</span>';
+    if (d.email) html += '<span> · ' + d.email + '</span>';
+    if (d.ciudad) html += '<span> · ' + d.ciudad + '</span>';
+    html += '</div></div>';
+    
+    if (d.secciones.indexOf('perfil') !== -1 && d.perfil) {
+        html += '<div style="margin-bottom:40px;"><p style="line-height:1.8; font-size:1.1rem;">' + d.perfil + '</p></div>';
+    }
+    
+    if (d.secciones.indexOf('experiencia') !== -1 && d.experiencias.length > 0) {
+        html += '<div style="margin-bottom:40px;"><h2>Experiencia</h2>';
+        d.experiencias.forEach(function(e) {
+            html += '<div style="margin-bottom:25px;"><h3 style="font-weight:500;">' + e.cargo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.empresa + ' · ' + e.inicio + ' - ' + e.fin + '</p><p style="line-height:1.6;">' + e.desc + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('educacion') !== -1 && d.educaciones.length > 0) {
+        html += '<div style="margin-bottom:40px;"><h2>Educación</h2>';
+        d.educaciones.forEach(function(e) {
+            html += '<div style="margin-bottom:20px;"><h3 style="font-weight:500;">' + e.titulo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.inst + ' · ' + e.inicio + ' - ' + e.fin + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('cursos') !== -1 && d.cursos.length > 0) {
+        html += '<div style="margin-bottom:40px;"><h2>Cursos</h2>';
+        d.cursos.forEach(function(c) {
+            html += '<div style="margin-bottom:15px;"><h3 style="font-weight:500;">' + c.nombre + '</h3><p style="color:#6b7280; font-style:italic;">' + c.inst + ' · ' + c.anio + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('habilidades') !== -1 && d.habilidades) {
+        html += '<div style="margin-bottom:40px;"><h2>Habilidades</h2><p>' + d.habilidades + '</p></div>';
+    }
+    
+    if (d.secciones.indexOf('idiomas') !== -1 && d.idiomas) {
+        html += '<div style="margin-bottom:40px;"><h2>Idiomas</h2><p>' + d.idiomas + '</p></div>';
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+function generateCVProfesional(d) {
+    let sidebar = '<div style="background:#f3f4f6; padding:30px; border-radius:10px;">';
+    if (d.foto) sidebar += '<img src="' + d.foto + '" style="width:150px; height:150px; border-radius:50%; object-fit:cover; margin-bottom:20px;">';
+    sidebar += '<h2 style="margin-bottom:20px; color:#1e3a8a;">' + d.nombre + '</h2>';
+    if (d.telefono) sidebar += '<p>📞 ' + d.telefono + '</p>';
+    if (d.email) sidebar += '<p>✉️ ' + d.email + '</p>';
+    if (d.ciudad) sidebar += '<p>📍 ' + d.ciudad + '</p>';
+    if (d.linkedin) sidebar += '<p>🔗 ' + d.linkedin + '</p>';
+    
+    if (d.secciones.indexOf('habilidades') !== -1 && d.habilidades) {
+        sidebar += '<div style="margin-top:30px;"><h3 style="color:#1e3a8a; border-bottom:2px solid #1e3a8a; padding-bottom:10px;">Habilidades</h3><ul style="list-style:none; padding:0;">';
+        d.habilidades.split(',').forEach(function(h) { if (h.trim()) sidebar += '<li>• ' + h.trim() + '</li>'; });
+        sidebar += '</ul></div>';
+    }
+    
+    if (d.secciones.indexOf('idiomas') !== -1 && d.idiomas) {
+        sidebar += '<div style="margin-top:30px;"><h3 style="color:#1e3a8a; border-bottom:2px solid #1e3a8a; padding-bottom:10px;">Idiomas</h3><ul style="list-style:none; padding:0;">';
+        d.idiomas.split(',').forEach(function(i) { if (i.trim()) sidebar += '<li>• ' + i.trim() + '</li>'; });
+        sidebar += '</ul></div>';
+    }
+    sidebar += '</div>';
+    
+    let main = '<div>';
+    
+    if (d.secciones.indexOf('perfil') !== -1 && d.perfil) {
+        main += '<div style="margin-bottom:30px;"><h2 style="color:#1e3a8a; border-bottom:3px solid #1e3a8a; padding-bottom:10px;">Perfil Profesional</h2><p style="line-height:1.6;">' + d.perfil + '</p></div>';
+    }
+    
+    if (d.secciones.indexOf('experiencia') !== -1 && d.experiencias.length > 0) {
+        main += '<div style="margin-bottom:30px;"><h2 style="color:#1e3a8a; border-bottom:3px solid #1e3a8a; padding-bottom:10px;">Experiencia Laboral</h2>';
+        d.experiencias.forEach(function(e) {
+            main += '<div style="margin-bottom:20px;"><h3>' + e.cargo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.empresa + ' | ' + e.inicio + ' - ' + e.fin + '</p><p style="line-height:1.6;">' + e.desc + '</p></div>';
+        });
+        main += '</div>';
+    }
+    
+    if (d.secciones.indexOf('educacion') !== -1 && d.educaciones.length > 0) {
+        main += '<div style="margin-bottom:30px;"><h2 style="color:#1e3a8a; border-bottom:3px solid #1e3a8a; padding-bottom:10px;">Educación</h2>';
+        d.educaciones.forEach(function(e) {
+            main += '<div style="margin-bottom:15px;"><h3>' + e.titulo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.inst + ' | ' + e.inicio + ' - ' + e.fin + '</p></div>';
+        });
+        main += '</div>';
+    }
+    
+    if (d.secciones.indexOf('cursos') !== -1 && d.cursos.length > 0) {
+        main += '<div style="margin-bottom:30px;"><h2 style="color:#1e3a8a; border-bottom:3px solid #1e3a8a; padding-bottom:10px;">Cursos</h2>';
+        d.cursos.forEach(function(c) {
+            main += '<div style="margin-bottom:15px;"><h3>' + c.nombre + '</h3><p style="color:#6b7280; font-style:italic;">' + c.inst + ' | ' + c.anio + '</p></div>';
+        });
+        main += '</div>';
+    }
+    
+    main += '</div>';
+    return '<div class="cv-profesional">' + sidebar + main + '</div>';
+}
+
+// ============================================
+// GENERAR TRANSCRIPCIÓN
+// ============================================
+function generateTranscripcion() {
+    const tipo = document.getElementById('trans-tipo').value;
+    const fuente = document.getElementById('trans-fuente').value;
+    const interlineado = document.getElementById('trans-interlineado').value;
+    const titulo = document.getElementById('trans-titulo').value || 'Transcripción';
+    const fecha = document.getElementById('trans-fecha').value;
+    const lugar = document.getElementById('trans-lugar').value;
+    const participantes = document.getElementById('trans-participantes').value;
+    const contenido = document.getElementById('trans-contenido').value;
+
+    let html = '';
+    if (tipo === 'apa') {
+        html = generateTransAPA({titulo: titulo, fecha: fecha, lugar: lugar, participantes: participantes, contenido: contenido, fuente: fuente, interlineado: interlineado});
+    } else {
+        html = generateTransLegal({titulo: titulo, fecha: fecha, lugar: lugar, participantes: participantes, contenido: contenido, fuente: fuente, interlineado: interlineado});
+    }
+    document.getElementById('document-preview').innerHTML = html;
+}
+
+function generateTransAPA(d) {
+    let fechaF = '';
+    if (d.fecha) {
+        const fechaObj = new Date(d.fecha + 'T00:00:00');
+        fechaF = fechaObj.toLocaleDateString('es-ES', {year: 'numeric', month: 'long', day: 'numeric'});
+    }
+    
+    let header = '<div style="text-align:center; margin-bottom:30px;"><h1 style="font-size:' + d.fuente + 'pt; margin-bottom:10px;">' + d.titulo + '</h1>';
+    if (fechaF) header += '<p style="font-size:' + d.fuente + 'pt;">' + fechaF + '</p>';
+    if (d.lugar) header += '<p style="font-size:' + d.fuente + 'pt;">' + d.lugar + '</p>';
+    if (d.participantes) header += '<p style="font-size:' + d.fuente + 'pt;"><strong>Participantes:</strong> ' + d.participantes + '</p>';
+    header += '</div>';
+    
+    const parrafos = d.contenido.split('\n\n').filter(function(p) { return p.trim(); });
+    let body = '<div style="font-family:\'Times New Roman\', serif; font-size:' + d.fuente + 'pt; line-height:' + d.interlineado + '; text-align:justify;">';
+    parrafos.forEach(function(p) {
+        body += '<p style="text-indent:1.27cm; margin-bottom:0;">' + p.trim() + '</p>';
+    });
+    body += '</div>';
+    
+    return '<div class="trans-apa">' + header + body + '</div>';
+}
+
+function generateTransLegal(d) {
+    let fechaF = '';
+    if (d.fecha) {
+        const fechaObj = new Date(d.fecha + 'T00:00:00');
+        fechaF = fechaObj.toLocaleDateString('es-ES', {year: 'numeric', month: 'long', day: 'numeric'});
+    }
+    
+    let header = '<div style="border:2px solid #333; padding:20px; margin-bottom:30px;"><h1 style="text-align:center; font-size:14pt;">' + d.titulo + '</h1>';
+    header += '<p style="text-align:center;"><strong>Fecha:</strong> ' + fechaF + '</p>';
+    if (d.lugar) header += '<p style="text-align:center;"><strong>Lugar:</strong> ' + d.lugar + '</p>';
+    if (d.participantes) header += '<p style="text-align:center;"><strong>Participantes:</strong> ' + d.participantes + '</p>';
+    header += '</div>';
+    
+    const lineas = d.contenido.split('\n').filter(function(l) { return l.trim(); });
+    let body = '<div style="font-family:\'Times New Roman\', serif; font-size:' + d.fuente + 'pt; line-height:' + d.interlineado + ';">';
+    lineas.forEach(function(linea) {
+        const match = linea.match(/^([A-ZÁÉÍÓÚÑa-záéíóúñ\s]+):\s*(.+)$/);
+        if (match) {
+            body += '<div style="margin-bottom:15px;"><span style="font-weight:bold; text-transform:uppercase;">' + match[1] + ':</span> ' + match[2] + '</div>';
+        } else {
+            body += '<p style="margin-bottom:10px;">' + linea + '</p>';
+        }
+    });
+    body += '</div>';
+    
+    return '<div class="trans-legal">' + header + body + '</div>';
+}
+
+// ============================================
+// DESCARGAS
+// ============================================
+function downloadPDF() {
+    window.print();
+}
+
+function downloadWord() {
+    const content = document.getElementById('document-preview').innerHTML;
+    const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Documento</title></head><body>' + content + '</body></html>';
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'documento.doc';
+    link.click();
+    URL.revokeObjectURL(url);
+    alert('📝 Documento Word descargado');
+}// ============================================
+// VARIABLES GLOBALES
+// ============================================
+let currentType = '';
+let currentCVData = null;
+let experienciaCount = 0;
+let educacionCount = 0;
+let cursosCount = 0;
+
+// ============================================
+// INICIALIZACIÓN
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+    checkTheme();
+    console.log('✅ Generador cargado correctamente');
+});
+
+// ============================================
+// MODO OSCURO/CLARO
+// ============================================
+function toggleTheme() {
+    const body = document.body;
+    const btn = document.getElementById('theme-toggle');
+    body.classList.toggle('dark-mode');
+    if (body.classList.contains('dark-mode')) {
+        btn.textContent = '☀️ Modo Claro';
+        localStorage.setItem('theme', 'dark');
+    } else {
+        btn.textContent = '🌙 Modo Oscuro';
+        localStorage.setItem('theme', 'light');
+    }
+}
+
+function checkTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const btn = document.getElementById('theme-toggle');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        if (btn) btn.textContent = '☀️ Modo Claro';
+    }
+}
+
+// ============================================
+// NAVEGACIÓN
+// ============================================
+function selectType(type) {
+    currentType = type;
+    document.getElementById('step-type').style.display = 'none';
+    document.getElementById('step-data').style.display = 'block';
+
+    if (type === 'cv') {
+        document.getElementById('data-title').textContent = 'Ingresa los datos de tu CV';
+        document.getElementById('form-cv').style.display = 'block';
+        document.getElementById('form-transcripcion').style.display = 'none';
+    } else {
+        document.getElementById('data-title').textContent = 'Configura tu Transcripción';
+        document.getElementById('form-cv').style.display = 'none';
+        document.getElementById('form-transcripcion').style.display = 'block';
+    }
+    window.scrollTo(0, 0);
+}
+
+function goBackToType() {
+    document.getElementById('step-data').style.display = 'none';
+    document.getElementById('step-type').style.display = 'block';
+    window.scrollTo(0, 0);
+}
+
+function goBackToEdit() {
+    // NO borrar los datos - solo volver al formulario
+    document.getElementById('step-preview').style.display = 'none';
+    document.getElementById('step-data').style.display = 'block';
+    window.scrollTo(0, 0);
+}
+
+function startOver() {
+    if (confirm('¿Seguro que quieres empezar un nuevo documento? Se perderán los datos.')) {
+        document.getElementById('step-preview').style.display = 'none';
+        document.getElementById('step-type').style.display = 'block';
+        document.getElementById('form-cv').style.display = 'none';
+        document.getElementById('form-transcripcion').style.display = 'none';
+        currentType = '';
+        currentCVData = null;
+        window.scrollTo(0, 0);
+    }
+}
+
+function toggleSecciones() {
+    const completo = document.getElementById('cv-completo').checked;
+    const select = document.getElementById('secciones-select');
+    select.style.display = completo ? 'none' : 'block';
+}
+
+// ============================================
+// AGREGAR CAMPOS DINÁMICOS
+// ============================================
+function addExperiencia() {
+    experienciaCount++;
+    const container = document.getElementById('experiencia-list');
+    const div = document.createElement('div');
+    div.className = 'item-row';
+    div.id = 'exp-' + experienciaCount;
+    div.innerHTML = '<button class="btn-remove" onclick="removeItem(\'exp-' + experienciaCount + '\')">✕</button>' +
+        '<div class="form-grid">' +
+        '<div class="form-group"><label>Empresa</label><input type="text" class="exp-empresa" placeholder="Ej: Empresa XYZ"></div>' +
+        '<div class="form-group"><label>Cargo</label><input type="text" class="exp-cargo" placeholder="Ej: Gerente"></div>' +
+        '<div class="form-group"><label>Fecha Inicio</label><input type="text" class="exp-inicio" placeholder="Ej: 2020"></div>' +
+        '<div class="form-group"><label>Fecha Fin</label><input type="text" class="exp-fin" placeholder="Ej: Actualidad"></div>' +
+        '</div>' +
+        '<div class="form-group"><label>Descripción</label><textarea class="exp-desc" rows="3" placeholder="Funciones..."></textarea></div>';
+    container.appendChild(div);
+}
+
+function addEducacion() {
+    educacionCount++;
+    const container = document.getElementById('educacion-list');
+    const div = document.createElement('div');
+    div.className = 'item-row';
+    div.id = 'edu-' + educacionCount;
+    div.innerHTML = '<button class="btn-remove" onclick="removeItem(\'edu-' + educacionCount + '\')">✕</button>' +
+        '<div class="form-grid">' +
+        '<div class="form-group"><label>Institución</label><input type="text" class="edu-inst" placeholder="Ej: Universidad"></div>' +
+        '<div class="form-group"><label>Título</label><input type="text" class="edu-titulo" placeholder="Ej: Licenciatura"></div>' +
+        '<div class="form-group"><label>Inicio</label><input type="text" class="edu-inicio" placeholder="Ej: 2015"></div>' +
+        '<div class="form-group"><label>Fin</label><input type="text" class="edu-fin" placeholder="Ej: 2019"></div>' +
+        '</div>';
+    container.appendChild(div);
+}
+
+function addCurso() {
+    cursosCount++;
+    const container = document.getElementById('cursos-list');
+    const div = document.createElement('div');
+    div.className = 'item-row';
+    div.id = 'cur-' + cursosCount;
+    div.innerHTML = '<button class="btn-remove" onclick="removeItem(\'cur-' + cursosCount + '\')">✕</button>' +
+        '<div class="form-grid">' +
+        '<div class="form-group"><label>Nombre del Curso</label><input type="text" class="cur-nombre" placeholder="Ej: Excel"></div>' +
+        '<div class="form-group"><label>Institución</label><input type="text" class="cur-inst" placeholder="Ej: Google"></div>' +
+        '<div class="form-group"><label>Año</label><input type="text" class="cur-anio" placeholder="Ej: 2023"></div>' +
+        '</div>';
+    container.appendChild(div);
+}
+
+function removeItem(id) {
+    const item = document.getElementById(id);
+    if (item) item.remove();
+}
+
+// ============================================
+// FUNCIÓN PARA ANALIZAR CV (CORREGIDA)
+// ============================================
+function parsearCVCompleto() {
+    const texto = document.getElementById('cv-texto-completo').value.trim();
+    
+    console.log('🔍 Iniciando análisis...');
+    
+    if (!texto) {
+        alert('❌ Por favor pega el contenido de tu CV primero');
+        return;
+    }
+
+    const datos = {
+        nombre: '', telefono: '', email: '', ciudad: '', linkedin: '',
+        perfil: '', experiencia: [], educacion: [], cursos: [],
+        habilidades: '', idiomas: ''
+    };
+
+    const lineas = texto.split('\n').map(l => l.trim()).filter(l => l);
+    
+    let seccionActual = 'inicio';
+    let bufferExp = null;
+    let bufferEdu = null;
+
+    const keywords = {
+        perfil: ['PERFIL PROFESIONAL', 'PERFIL', 'OBJETIVO', 'SOBRE MÍ', 'SOBRE MI'],
+        experiencia: ['EXPERIENCIA LABORAL', 'EXPERIENCIA PROFESIONAL', 'EXPERIENCIA'],
+        educacion: ['FORMACIÓN ACADÉMICA', 'FORMACION ACADEMICA', 'EDUCACIÓN', 'EDUCACION', 'ESTUDIOS'],
+        habilidades: ['HABILIDADES', 'SKILLS', 'COMPETENCIAS', 'DESTREZAS'],
+        cursos: ['CURSOS', 'CURSOS REALIZADOS', 'CERTIFICACIONES', 'CAPACITACIONES'],
+        idiomas: ['IDIOMAS', 'LANGUAGES']
+    };
+
+    for (let i = 0; i < lineas.length; i++) {
+        const linea = lineas[i];
+        const lineaUpper = linea.toUpperCase();
+        let esInicioSeccion = false;
+
+        for (const key in keywords) {
+            const words = keywords[key];
+            for (let j = 0; j < words.length; j++) {
+                if (lineaUpper.includes(words[j])) {
+                    if (bufferExp) {
+                        datos.experiencia.push(bufferExp);
+                        bufferExp = null;
+                    }
+                    if (bufferEdu) {
+                        datos.educacion.push(bufferEdu);
+                        bufferEdu = null;
+                    }
+                    seccionActual = key;
+                    esInicioSeccion = true;
+                    break;
+                }
+            }
+            if (esInicioSeccion) break;
+        }
+
+        if (esInicioSeccion) continue;
+
+        if (seccionActual === 'inicio') {
+            if (!datos.nombre && i === 0) {
+                datos.nombre = linea;
+            } else if (linea.match(/04\d{2}-?\d{7}/) || linea.toLowerCase().includes('teléfono') || linea.toLowerCase().includes('telefono')) {
+                datos.telefono = linea.replace(/.*?:\s*/i, '').trim();
+            } else if (linea.includes('@')) {
+                datos.email = linea.replace(/.*?:\s*/i, '').trim();
+            } else if (linea.toLowerCase().match(/ciudad|ubicación|direccion|edo\.|estado/)) {
+                datos.ciudad = linea.replace(/.*?:\s*/i, '').trim();
+            } else if (linea.toLowerCase().match(/linkedin|web|portfolio/)) {
+                datos.linkedin = linea.replace(/.*?:\s*/i, '').trim();
+            } else if (!datos.ciudad && linea.match(/edo\.|estado|anzoategui|guanipa/i)) {
+                datos.ciudad = linea;
+            }
+        } else if (seccionActual === 'perfil') {
+            datos.perfil += linea + ' ';
+        } else if (seccionActual === 'experiencia') {
+            if (linea.includes(' - ') || (linea.length < 80 && lineaUpper === linea && linea.length > 5)) {
+                if (bufferExp) datos.experiencia.push(bufferExp);
+                const partes = linea.split(' - ');
+                bufferExp = {
+                    empresa: partes[0] ? partes[0].trim() : '',
+                    cargo: partes[1] ? partes[1].trim() : linea,
+                    fecha: '',
+                    descripcion: ''
+                };
+            } else if (bufferExp) {
+                if (linea.match(/\d{4}/) && !bufferExp.fecha) {
+                    bufferExp.fecha = linea;
+                } else {
+                    bufferExp.descripcion += linea + ' ';
+                }
+            } else {
+                bufferExp = { empresa: '', cargo: linea, fecha: '', descripcion: '' };
+            }
+        } else if (seccionActual === 'educacion') {
+            if (linea.includes(' - ') || linea.match(/\d{4}/)) {
+                if (bufferEdu) datos.educacion.push(bufferEdu);
+                const partes = linea.split(' - ');
+                bufferEdu = {
+                    inst: partes[1] ? partes[1].trim() : '',
+                    titulo: partes[0] ? partes[0].trim() : linea,
+                    inicio: '',
+                    fin: ''
+                };
+            } else if (bufferEdu) {
+                bufferEdu.titulo += ' ' + linea;
+            } else {
+                bufferEdu = { inst: '', titulo: linea, inicio: '', fin: '' };
+            }
+        } else if (seccionActual === 'habilidades') {
+            datos.habilidades += linea + ', ';
+        } else if (seccionActual === 'cursos') {
+            if (linea.includes(' - ') || linea.match(/\d{4}/)) {
+                const partes = linea.split(' - ');
+                const anioMatch = linea.match(/\d{4}/);
+                datos.cursos.push({
+                    nombre: partes[0] ? partes[0].trim() : linea,
+                    inst: partes[1] ? partes[1].replace(/\(\d{4}\)/g, '').trim() : '',
+                    anio: anioMatch ? anioMatch[0] : ''
+                });
+            } else {
+                datos.cursos.push({ nombre: linea, inst: '', anio: '' });
+            }
+        } else if (seccionActual === 'idiomas') {
+            datos.idiomas += linea + ', ';
+        }
+    }
+
+    if (bufferExp) datos.experiencia.push(bufferExp);
+    if (bufferEdu) datos.educacion.push(bufferEdu);
+
+    console.log('Datos extraídos:', datos);
+
+    // LLENAR EL FORMULARIO
+    if (datos.nombre) document.getElementById('cv-nombre').value = datos.nombre;
+    if (datos.telefono) document.getElementById('cv-telefono').value = datos.telefono;
+    if (datos.email) document.getElementById('cv-email').value = datos.email;
+    if (datos.ciudad) document.getElementById('cv-ciudad').value = datos.ciudad;
+    if (datos.linkedin) document.getElementById('cv-linkedin').value = datos.linkedin;
+    if (datos.perfil.trim()) document.getElementById('cv-perfil').value = datos.perfil.trim();
+    if (datos.habilidades.trim()) document.getElementById('cv-habilidades').value = datos.habilidades.trim();
+    if (datos.idiomas.trim()) document.getElementById('cv-idiomas').value = datos.idiomas.trim();
+
+    // Llenar experiencias
+    datos.experiencia.forEach(function(exp) {
+        if (exp.cargo || exp.empresa) {
+            addExperiencia();
+            const items = document.querySelectorAll('#experiencia-list .item-row');
+            const last = items[items.length - 1];
+            if (exp.empresa) last.querySelector('.exp-empresa').value = exp.empresa;
+            if (exp.cargo) last.querySelector('.exp-cargo').value = exp.cargo;
+            if (exp.fecha) last.querySelector('.exp-inicio').value = exp.fecha;
+            if (exp.descripcion) last.querySelector('.exp-desc').value = exp.descripcion.trim();
+        }
+    });
+
+    // Llenar educación
+    datos.educacion.forEach(function(edu) {
+        if (edu.titulo || edu.inst) {
+            addEducacion();
+            const items = document.querySelectorAll('#educacion-list .item-row');
+            const last = items[items.length - 1];
+            if (edu.titulo) last.querySelector('.edu-titulo').value = edu.titulo;
+            if (edu.inst) last.querySelector('.edu-inst').value = edu.inst;
+        }
+    });
+
+    // Llenar cursos
+    datos.cursos.forEach(function(cur) {
+        if (cur.nombre) {
+            addCurso();
+            const items = document.querySelectorAll('#cursos-list .item-row');
+            const last = items[items.length - 1];
+            if (cur.nombre) last.querySelector('.cur-nombre').value = cur.nombre;
+            if (cur.inst) last.querySelector('.cur-inst').value = cur.inst;
+            if (cur.anio) last.querySelector('.cur-anio').value = cur.anio;
+        }
+    });
+
+    alert('✅ ¡CV analizado! Revisa los campos abajo y haz scroll para verlos');
+    
+    document.getElementById('cv-texto-completo').value = '';
+    
+    setTimeout(function() {
+        document.querySelector('#form-cv .form-section').scrollIntoView({ behavior: 'smooth' });
+    }, 300);
+}
+
+// ============================================
+// RECOLECTAR DATOS
+// ============================================
+function recolectarDatosCV() {
+    const data = {
+        nombre: document.getElementById('cv-nombre').value || 'Tu Nombre',
+        telefono: document.getElementById('cv-telefono').value,
+        email: document.getElementById('cv-email').value,
+        ciudad: document.getElementById('cv-ciudad').value,
+        linkedin: document.getElementById('cv-linkedin').value,
+        foto: document.getElementById('cv-foto').value,
+        perfil: document.getElementById('cv-perfil').value,
+        habilidades: document.getElementById('cv-habilidades').value,
+        idiomas: document.getElementById('cv-idiomas').value,
+        experiencias: [],
+        educaciones: [],
+        cursos: []
+    };
+
+    document.querySelectorAll('#experiencia-list .item-row').forEach(function(row) {
+        data.experiencias.push({
+            empresa: row.querySelector('.exp-empresa').value,
+            cargo: row.querySelector('.exp-cargo').value,
+            inicio: row.querySelector('.exp-inicio').value,
+            fin: row.querySelector('.exp-fin').value,
+            desc: row.querySelector('.exp-desc').value
+        });
+    });
+
+    document.querySelectorAll('#educacion-list .item-row').forEach(function(row) {
+        data.educaciones.push({
+            inst: row.querySelector('.edu-inst').value,
+            titulo: row.querySelector('.edu-titulo').value,
+            inicio: row.querySelector('.edu-inicio').value,
+            fin: row.querySelector('.edu-fin').value
+        });
+    });
+
+    document.querySelectorAll('#cursos-list .item-row').forEach(function(row) {
+        data.cursos.push({
+            nombre: row.querySelector('.cur-nombre').value,
+            inst: row.querySelector('.cur-inst').value,
+            anio: row.querySelector('.cur-anio').value
+        });
+    });
+
+    const completo = document.getElementById('cv-completo').checked;
+    let secciones = ['perfil', 'experiencia', 'educacion', 'cursos', 'habilidades', 'idiomas'];
+    if (!completo) {
+        secciones = [];
+        document.querySelectorAll('.seccion-check:checked').forEach(function(cb) {
+            secciones.push(cb.value);
+        });
+    }
+    data.secciones = secciones;
+
+    return data;
+}
+
+// ============================================
+// GENERAR DOCUMENTO
+// ============================================
+function generateDocument() {
+    console.log('Generando documento...');
+    
+    if (currentType === 'cv') {
+        currentCVData = recolectarDatosCV();
+        const styleRadio = document.querySelector('input[name="cv-style"]:checked');
+        const estilo = styleRadio ? styleRadio.value : 'moderno';
+        currentCVData.estilo = estilo;
+        
+        console.log('Datos del CV:', currentCVData);
+        
+        let html = '';
+        switch(estilo) {
+            case 'moderno': html = generateCVModerno(currentCVData); break;
+            case 'clasico': html = generateCVClasico(currentCVData); break;
+            case 'creativo': html = generateCVCreativo(currentCVData); break;
+            case 'minimalista': html = generateCVMinimalista(currentCVData); break;
+            case 'profesional': html = generateCVProfesional(currentCVData); break;
+        }
+        
+        document.getElementById('document-preview').innerHTML = html;
+        console.log('CV generado correctamente');
+    } else {
+        generateTranscripcion();
+    }
+    
+    document.getElementById('step-data').style.display = 'none';
+    document.getElementById('step-preview').style.display = 'block';
+    window.scrollTo(0, 0);
+}
+
+// ============================================
+// CAMBIAR ESTILO
+// ============================================
+function changeStyle(nuevoEstilo) {
+    if (!currentCVData) {
+        alert('No hay datos del CV');
+        return;
+    }
+    
+    currentCVData.estilo = nuevoEstilo;
+    
+    let html = '';
+    switch(nuevoEstilo) {
+        case 'moderno': html = generateCVModerno(currentCVData); break;
+        case 'clasico': html = generateCVClasico(currentCVData); break;
+        case 'creativo': html = generateCVCreativo(currentCVData); break;
+        case 'minimalista': html = generateCVMinimalista(currentCVData); break;
+        case 'profesional': html = generateCVProfesional(currentCVData); break;
+    }
+    
+    document.getElementById('document-preview').innerHTML = html;
+    alert('✨ Estilo cambiado a: ' + nuevoEstilo.charAt(0).toUpperCase() + nuevoEstilo.slice(1));
+}
+
+// ============================================
+// FUNCIONES DE GENERACIÓN DE CV
+// ============================================
+function generateCVModerno(d) {
+    let sidebar = '<div class="cv-sidebar">';
+    if (d.foto) sidebar += '<img src="' + d.foto + '" style="width:150px; height:150px; border-radius:50%; object-fit:cover; margin-bottom:20px; border: 4px solid white;">';
+    sidebar += '<h2 style="margin-bottom:20px;">' + d.nombre + '</h2>';
+    if (d.telefono) sidebar += '<p>📞 ' + d.telefono + '</p>';
+    if (d.email) sidebar += '<p>✉️ ' + d.email + '</p>';
+    if (d.ciudad) sidebar += '<p>📍 ' + d.ciudad + '</p>';
+    if (d.linkedin) sidebar += '<p>🔗 ' + d.linkedin + '</p>';
+    
+    if (d.secciones.indexOf('habilidades') !== -1 && d.habilidades) {
+        sidebar += '<div style="margin-top:30px;"><h3 style="border-bottom:2px solid white; padding-bottom:10px; margin-bottom:15px;">Habilidades</h3><ul style="list-style:none; padding:0;">';
+        d.habilidades.split(',').forEach(function(h) { if (h.trim()) sidebar += '<li style="margin-bottom:8px;">• ' + h.trim() + '</li>'; });
+        sidebar += '</ul></div>';
+    }
+    
+    if (d.secciones.indexOf('idiomas') !== -1 && d.idiomas) {
+        sidebar += '<div style="margin-top:30px;"><h3 style="border-bottom:2px solid white; padding-bottom:10px; margin-bottom:15px;">Idiomas</h3><ul style="list-style:none; padding:0;">';
+        d.idiomas.split(',').forEach(function(i) { if (i.trim()) sidebar += '<li style="margin-bottom:8px;">• ' + i.trim() + '</li>'; });
+        sidebar += '</ul></div>';
+    }
+    sidebar += '</div>';
+    
+    let main = '<div class="cv-main">';
+    
+    if (d.secciones.indexOf('perfil') !== -1 && d.perfil) {
+        main += '<div style="margin-bottom:30px;"><h2 style="color:#3b82f6; border-bottom:3px solid #3b82f6; padding-bottom:10px; margin-bottom:15px;">Perfil Profesional</h2><p style="line-height:1.6;">' + d.perfil + '</p></div>';
+    }
+    
+    if (d.secciones.indexOf('experiencia') !== -1 && d.experiencias.length > 0) {
+        main += '<div style="margin-bottom:30px;"><h2 style="color:#3b82f6; border-bottom:3px solid #3b82f6; padding-bottom:10px; margin-bottom:15px;">Experiencia Laboral</h2>';
+        d.experiencias.forEach(function(e) {
+            main += '<div style="margin-bottom:20px;"><h3 style="margin-bottom:5px;">' + e.cargo + '</h3><p style="color:#6b7280; font-style:italic; margin-bottom:10px;">' + e.empresa + ' | ' + e.inicio + ' - ' + e.fin + '</p><p style="line-height:1.6;">' + e.desc + '</p></div>';
+        });
+        main += '</div>';
+    }
+    
+    if (d.secciones.indexOf('educacion') !== -1 && d.educaciones.length > 0) {
+        main += '<div style="margin-bottom:30px;"><h2 style="color:#3b82f6; border-bottom:3px solid #3b82f6; padding-bottom:10px; margin-bottom:15px;">Educación</h2>';
+        d.educaciones.forEach(function(e) {
+            main += '<div style="margin-bottom:15px;"><h3 style="margin-bottom:5px;">' + e.titulo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.inst + ' | ' + e.inicio + ' - ' + e.fin + '</p></div>';
+        });
+        main += '</div>';
+    }
+    
+    if (d.secciones.indexOf('cursos') !== -1 && d.cursos.length > 0) {
+        main += '<div style="margin-bottom:30px;"><h2 style="color:#3b82f6; border-bottom:3px solid #3b82f6; padding-bottom:10px; margin-bottom:15px;">Cursos</h2>';
+        d.cursos.forEach(function(c) {
+            main += '<div style="margin-bottom:15px;"><h3 style="margin-bottom:5px;">' + c.nombre + '</h3><p style="color:#6b7280; font-style:italic;">' + c.inst + ' | ' + c.anio + '</p></div>';
+        });
+        main += '</div>';
+    }
+    
+    main += '</div>';
+    return '<div class="cv-moderno">' + sidebar + main + '</div>';
+}
+
+function generateCVClasico(d) {
+    let html = '<div class="cv-clasico"><div class="cv-header"><h1 style="font-size:2rem; margin-bottom:10px;">' + d.nombre + '</h1><div style="color:#6b7280;">';
+    if (d.telefono) html += '<span>' + d.telefono + '</span>';
+    if (d.email) html += '<span> | ' + d.email + '</span>';
+    if (d.ciudad) html += '<span> | ' + d.ciudad + '</span>';
+    html += '</div></div>';
+    
+    if (d.secciones.indexOf('perfil') !== -1 && d.perfil) {
+        html += '<div style="margin-bottom:30px; text-align:left;"><h2>PERFIL PROFESIONAL</h2><p style="line-height:1.6;">' + d.perfil + '</p></div>';
+    }
+    
+    if (d.secciones.indexOf('experiencia') !== -1 && d.experiencias.length > 0) {
+        html += '<div style="margin-bottom:30px; text-align:left;"><h2>EXPERIENCIA LABORAL</h2>';
+        d.experiencias.forEach(function(e) {
+            html += '<div style="margin-bottom:20px;"><h3>' + e.cargo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.empresa + ' | ' + e.inicio + ' - ' + e.fin + '</p><p style="line-height:1.6;">' + e.desc + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('educacion') !== -1 && d.educaciones.length > 0) {
+        html += '<div style="margin-bottom:30px; text-align:left;"><h2>EDUCACIÓN</h2>';
+        d.educaciones.forEach(function(e) {
+            html += '<div style="margin-bottom:15px;"><h3>' + e.titulo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.inst + ' | ' + e.inicio + ' - ' + e.fin + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('cursos') !== -1 && d.cursos.length > 0) {
+        html += '<div style="margin-bottom:30px; text-align:left;"><h2>CURSOS</h2>';
+        d.cursos.forEach(function(c) {
+            html += '<div style="margin-bottom:15px;"><h3>' + c.nombre + '</h3><p style="color:#6b7280; font-style:italic;">' + c.inst + ' | ' + c.anio + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('habilidades') !== -1 && d.habilidades) {
+        html += '<div style="margin-bottom:30px; text-align:left;"><h2>HABILIDADES</h2><p>' + d.habilidades + '</p></div>';
+    }
+    
+    if (d.secciones.indexOf('idiomas') !== -1 && d.idiomas) {
+        html += '<div style="margin-bottom:30px; text-align:left;"><h2>IDIOMAS</h2><p>' + d.idiomas + '</p></div>';
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+function generateCVCreativo(d) {
+    let html = '<div class="cv-creativo"><div class="cv-header"><h1 style="font-size:2.5rem; margin-bottom:10px;">' + d.nombre + '</h1><div style="font-size:1.1rem;">';
+    if (d.telefono) html += '<span>📞 ' + d.telefono + '</span>';
+    if (d.email) html += '<span> | ✉️ ' + d.email + '</span>';
+    if (d.ciudad) html += '<span> | 📍 ' + d.ciudad + '</span>';
+    html += '</div></div>';
+    
+    if (d.secciones.indexOf('perfil') !== -1 && d.perfil) {
+        html += '<div style="margin-bottom:30px;"><h2 style="color:#f59e0b;">Sobre Mí</h2><p style="line-height:1.6;">' + d.perfil + '</p></div>';
+    }
+    
+    if (d.secciones.indexOf('experiencia') !== -1 && d.experiencias.length > 0) {
+        html += '<div style="margin-bottom:30px;"><h2 style="color:#f59e0b;">Experiencia</h2>';
+        d.experiencias.forEach(function(e) {
+            html += '<div style="margin-bottom:20px; padding-left:15px; border-left:4px solid #f59e0b;"><h3>' + e.cargo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.empresa + ' | ' + e.inicio + ' - ' + e.fin + '</p><p style="line-height:1.6;">' + e.desc + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('educacion') !== -1 && d.educaciones.length > 0) {
+        html += '<div style="margin-bottom:30px;"><h2 style="color:#f59e0b;">Educación</h2>';
+        d.educaciones.forEach(function(e) {
+            html += '<div style="margin-bottom:15px; padding-left:15px; border-left:4px solid #f59e0b;"><h3>' + e.titulo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.inst + ' | ' + e.inicio + ' - ' + e.fin + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('cursos') !== -1 && d.cursos.length > 0) {
+        html += '<div style="margin-bottom:30px;"><h2 style="color:#f59e0b;">Cursos</h2>';
+        d.cursos.forEach(function(c) {
+            html += '<div style="margin-bottom:15px; padding-left:15px; border-left:4px solid #f59e0b;"><h3>' + c.nombre + '</h3><p style="color:#6b7280; font-style:italic;">' + c.inst + ' | ' + c.anio + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('habilidades') !== -1 && d.habilidades) {
+        html += '<div style="margin-bottom:30px;"><h2 style="color:#f59e0b;">Habilidades</h2><div style="display:flex; flex-wrap:wrap; gap:10px;">';
+        d.habilidades.split(',').forEach(function(h) { if (h.trim()) html += '<span style="background:#f59e0b; color:white; padding:5px 15px; border-radius:20px;">' + h.trim() + '</span>'; });
+        html += '</div></div>';
+    }
+    
+    if (d.secciones.indexOf('idiomas') !== -1 && d.idiomas) {
+        html += '<div style="margin-bottom:30px;"><h2 style="color:#f59e0b;">Idiomas</h2><p>' + d.idiomas + '</p></div>';
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+function generateCVMinimalista(d) {
+    let html = '<div class="cv-minimalista"><div class="cv-header"><h1 style="font-size:2.5rem; font-weight:300; margin-bottom:10px;">' + d.nombre + '</h1><div style="color:#6b7280;">';
+    if (d.telefono) html += '<span>' + d.telefono + '</span>';
+    if (d.email) html += '<span> · ' + d.email + '</span>';
+    if (d.ciudad) html += '<span> · ' + d.ciudad + '</span>';
+    html += '</div></div>';
+    
+    if (d.secciones.indexOf('perfil') !== -1 && d.perfil) {
+        html += '<div style="margin-bottom:40px;"><p style="line-height:1.8; font-size:1.1rem;">' + d.perfil + '</p></div>';
+    }
+    
+    if (d.secciones.indexOf('experiencia') !== -1 && d.experiencias.length > 0) {
+        html += '<div style="margin-bottom:40px;"><h2>Experiencia</h2>';
+        d.experiencias.forEach(function(e) {
+            html += '<div style="margin-bottom:25px;"><h3 style="font-weight:500;">' + e.cargo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.empresa + ' · ' + e.inicio + ' - ' + e.fin + '</p><p style="line-height:1.6;">' + e.desc + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('educacion') !== -1 && d.educaciones.length > 0) {
+        html += '<div style="margin-bottom:40px;"><h2>Educación</h2>';
+        d.educaciones.forEach(function(e) {
+            html += '<div style="margin-bottom:20px;"><h3 style="font-weight:500;">' + e.titulo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.inst + ' · ' + e.inicio + ' - ' + e.fin + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('cursos') !== -1 && d.cursos.length > 0) {
+        html += '<div style="margin-bottom:40px;"><h2>Cursos</h2>';
+        d.cursos.forEach(function(c) {
+            html += '<div style="margin-bottom:15px;"><h3 style="font-weight:500;">' + c.nombre + '</h3><p style="color:#6b7280; font-style:italic;">' + c.inst + ' · ' + c.anio + '</p></div>';
+        });
+        html += '</div>';
+    }
+    
+    if (d.secciones.indexOf('habilidades') !== -1 && d.habilidades) {
+        html += '<div style="margin-bottom:40px;"><h2>Habilidades</h2><p>' + d.habilidades + '</p></div>';
+    }
+    
+    if (d.secciones.indexOf('idiomas') !== -1 && d.idiomas) {
+        html += '<div style="margin-bottom:40px;"><h2>Idiomas</h2><p>' + d.idiomas + '</p></div>';
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+function generateCVProfesional(d) {
+    let sidebar = '<div style="background:#f3f4f6; padding:30px; border-radius:10px;">';
+    if (d.foto) sidebar += '<img src="' + d.foto + '" style="width:150px; height:150px; border-radius:50%; object-fit:cover; margin-bottom:20px;">';
+    sidebar += '<h2 style="margin-bottom:20px; color:#1e3a8a;">' + d.nombre + '</h2>';
+    if (d.telefono) sidebar += '<p>📞 ' + d.telefono + '</p>';
+    if (d.email) sidebar += '<p>✉️ ' + d.email + '</p>';
+    if (d.ciudad) sidebar += '<p>📍 ' + d.ciudad + '</p>';
+    if (d.linkedin) sidebar += '<p>🔗 ' + d.linkedin + '</p>';
+    
+    if (d.secciones.indexOf('habilidades') !== -1 && d.habilidades) {
+        sidebar += '<div style="margin-top:30px;"><h3 style="color:#1e3a8a; border-bottom:2px solid #1e3a8a; padding-bottom:10px;">Habilidades</h3><ul style="list-style:none; padding:0;">';
+        d.habilidades.split(',').forEach(function(h) { if (h.trim()) sidebar += '<li>• ' + h.trim() + '</li>'; });
+        sidebar += '</ul></div>';
+    }
+    
+    if (d.secciones.indexOf('idiomas') !== -1 && d.idiomas) {
+        sidebar += '<div style="margin-top:30px;"><h3 style="color:#1e3a8a; border-bottom:2px solid #1e3a8a; padding-bottom:10px;">Idiomas</h3><ul style="list-style:none; padding:0;">';
+        d.idiomas.split(',').forEach(function(i) { if (i.trim()) sidebar += '<li>• ' + i.trim() + '</li>'; });
+        sidebar += '</ul></div>';
+    }
+    sidebar += '</div>';
+    
+    let main = '<div>';
+    
+    if (d.secciones.indexOf('perfil') !== -1 && d.perfil) {
+        main += '<div style="margin-bottom:30px;"><h2 style="color:#1e3a8a; border-bottom:3px solid #1e3a8a; padding-bottom:10px;">Perfil Profesional</h2><p style="line-height:1.6;">' + d.perfil + '</p></div>';
+    }
+    
+    if (d.secciones.indexOf('experiencia') !== -1 && d.experiencias.length > 0) {
+        main += '<div style="margin-bottom:30px;"><h2 style="color:#1e3a8a; border-bottom:3px solid #1e3a8a; padding-bottom:10px;">Experiencia Laboral</h2>';
+        d.experiencias.forEach(function(e) {
+            main += '<div style="margin-bottom:20px;"><h3>' + e.cargo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.empresa + ' | ' + e.inicio + ' - ' + e.fin + '</p><p style="line-height:1.6;">' + e.desc + '</p></div>';
+        });
+        main += '</div>';
+    }
+    
+    if (d.secciones.indexOf('educacion') !== -1 && d.educaciones.length > 0) {
+        main += '<div style="margin-bottom:30px;"><h2 style="color:#1e3a8a; border-bottom:3px solid #1e3a8a; padding-bottom:10px;">Educación</h2>';
+        d.educaciones.forEach(function(e) {
+            main += '<div style="margin-bottom:15px;"><h3>' + e.titulo + '</h3><p style="color:#6b7280; font-style:italic;">' + e.inst + ' | ' + e.inicio + ' - ' + e.fin + '</p></div>';
+        });
+        main += '</div>';
+    }
+    
+    if (d.secciones.indexOf('cursos') !== -1 && d.cursos.length > 0) {
+        main += '<div style="margin-bottom:30px;"><h2 style="color:#1e3a8a; border-bottom:3px solid #1e3a8a; padding-bottom:10px;">Cursos</h2>';
+        d.cursos.forEach(function(c) {
+            main += '<div style="margin-bottom:15px;"><h3>' + c.nombre + '</h3><p style="color:#6b7280; font-style:italic;">' + c.inst + ' | ' + c.anio + '</p></div>';
+        });
+        main += '</div>';
+    }
+    
+    main += '</div>';
+    return '<div class="cv-profesional">' + sidebar + main + '</div>';
+}
+
+// ============================================
+// GENERAR TRANSCRIPCIÓN
+// ============================================
+function generateTranscripcion() {
+    const tipo = document.getElementById('trans-tipo').value;
+    const fuente = document.getElementById('trans-fuente').value;
+    const interlineado = document.getElementById('trans-interlineado').value;
+    const titulo = document.getElementById('trans-titulo').value || 'Transcripción';
+    const fecha = document.getElementById('trans-fecha').value;
+    const lugar = document.getElementById('trans-lugar').value;
+    const participantes = document.getElementById('trans-participantes').value;
+    const contenido = document.getElementById('trans-contenido').value;
+
+    let html = '';
+    if (tipo === 'apa') {
+        html = generateTransAPA({titulo: titulo, fecha: fecha, lugar: lugar, participantes: participantes, contenido: contenido, fuente: fuente, interlineado: interlineado});
+    } else {
+        html = generateTransLegal({titulo: titulo, fecha: fecha, lugar: lugar, participantes: participantes, contenido: contenido, fuente: fuente, interlineado: interlineado});
+    }
+    document.getElementById('document-preview').innerHTML = html;
+}
+
+function generateTransAPA(d) {
+    let fechaF = '';
+    if (d.fecha) {
+        const fechaObj = new Date(d.fecha + 'T00:00:00');
+        fechaF = fechaObj.toLocaleDateString('es-ES', {year: 'numeric', month: 'long', day: 'numeric'});
+    }
+    
+    let header = '<div style="text-align:center; margin-bottom:30px;"><h1 style="font-size:' + d.fuente + 'pt; margin-bottom:10px;">' + d.titulo + '</h1>';
+    if (fechaF) header += '<p style="font-size:' + d.fuente + 'pt;">' + fechaF + '</p>';
+    if (d.lugar) header += '<p style="font-size:' + d.fuente + 'pt;">' + d.lugar + '</p>';
+    if (d.participantes) header += '<p style="font-size:' + d.fuente + 'pt;"><strong>Participantes:</strong> ' + d.participantes + '</p>';
+    header += '</div>';
+    
+    const parrafos = d.contenido.split('\n\n').filter(function(p) { return p.trim(); });
+    let body = '<div style="font-family:\'Times New Roman\', serif; font-size:' + d.fuente + 'pt; line-height:' + d.interlineado + '; text-align:justify;">';
+    parrafos.forEach(function(p) {
+        body += '<p style="text-indent:1.27cm; margin-bottom:0;">' + p.trim() + '</p>';
+    });
+    body += '</div>';
+    
+    return '<div class="trans-apa">' + header + body + '</div>';
+}
+
+function generateTransLegal(d) {
+    let fechaF = '';
+    if (d.fecha) {
+        const fechaObj = new Date(d.fecha + 'T00:00:00');
+        fechaF = fechaObj.toLocaleDateString('es-ES', {year: 'numeric', month: 'long', day: 'numeric'});
+    }
+    
+    let header = '<div style="border:2px solid #333; padding:20px; margin-bottom:30px;"><h1 style="text-align:center; font-size:14pt;">' + d.titulo + '</h1>';
+    header += '<p style="text-align:center;"><strong>Fecha:</strong> ' + fechaF + '</p>';
+    if (d.lugar) header += '<p style="text-align:center;"><strong>Lugar:</strong> ' + d.lugar + '</p>';
+    if (d.participantes) header += '<p style="text-align:center;"><strong>Participantes:</strong> ' + d.participantes + '</p>';
+    header += '</div>';
+    
+    const lineas = d.contenido.split('\n').filter(function(l) { return l.trim(); });
+    let body = '<div style="font-family:\'Times New Roman\', serif; font-size:' + d.fuente + 'pt; line-height:' + d.interlineado + ';">';
+    lineas.forEach(function(linea) {
+        const match = linea.match(/^([A-ZÁÉÍÓÚÑa-záéíóúñ\s]+):\s*(.+)$/);
+        if (match) {
+            body += '<div style="margin-bottom:15px;"><span style="font-weight:bold; text-transform:uppercase;">' + match[1] + ':</span> ' + match[2] + '</div>';
+        } else {
+            body += '<p style="margin-bottom:10px;">' + linea + '</p>';
+        }
+    });
+    body += '</div>';
+    
+    return '<div class="trans-legal">' + header + body + '</div>';
+}
+
+// ============================================
+// DESCARGAS
+// ============================================
+function downloadPDF() {
+    window.print();
+}
+
+function downloadWord() {
+    const content = document.getElementById('document-preview').innerHTML;
+    const html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>Documento</title></head><body>' + content + '</body></html>';
+    const blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'documento.doc';
+    link.click();
+    URL.revokeObjectURL(url);
+    alert('📝 Documento Word descargado');
+}
