@@ -17,8 +17,8 @@
 </header>
 
 <main>
-<!-- PASO 1: TIPO DE DOCUMENTO -->
-<div id="step-type" class="step active">
+<!-- PASO 1: TIPO DE DOCUMENTO - VISIBLE POR DEFECTO -->
+<div id="step-type" class="step">
 <div class="step-header">
 <span class="step-number">1</span>
 <h2>¿Qué tipo de documento necesitas?</h2>
@@ -37,7 +37,7 @@
 </div>
 </div>
 
-<!-- PASO 2: FORMULARIO -->
+<!-- PASO 2: FORMULARIO - OCULTO POR DEFECTO -->
 <div id="step-form" class="step" style="display:none;">
 <div class="step-header">
 <span class="step-number">2</span>
@@ -50,7 +50,7 @@
 
 <!-- OPCIÓN RÁPIDA: PEGAR CV COMPLETO -->
 <div class="quick-parse-section">
-<h3> Opción Rápida: Pegar CV Completo</h3>
+<h3>📋 Opción Rápida: Pegar CV Completo</h3>
 <p>Pega aquí todo tu currículum y el sistema lo organizará automáticamente:</p>
 <textarea id="cv-texto-completo" rows="12" placeholder="Ejemplo:
 
@@ -78,7 +78,7 @@ Atención al Cliente - Certificación complementaria"></textarea>
 <button class="btn-parse" onclick="parsearCVCompleto()">
 🤖 Analizar y Organizar Automáticamente
 </button>
-<p class="parse-hint">💡 El sistema detectará: datos personales, perfil, experiencia, educación, habilidades y cursos</p>
+<p class="parse-hint"> El sistema detectará: datos personales, perfil, experiencia, educación, habilidades y cursos</p>
 </div>
 
 <hr class="divider">
@@ -115,18 +115,18 @@ Atención al Cliente - Certificación complementaria"></textarea>
 </div>
 
 <div class="form-section">
-<h3> Perfil Profesional</h3>
+<h3>🎯 Perfil Profesional</h3>
 <textarea id="cv-perfil" rows="4" placeholder="Breve descripción de tu perfil profesional..."></textarea>
 </div>
 
 <div class="form-section">
-<h3> Experiencia Laboral</h3>
+<h3>💼 Experiencia Laboral</h3>
 <div id="experiencia-list"></div>
 <button type="button" class="btn-add" onclick="addExperiencia()">➕ Agregar Experiencia</button>
 </div>
 
 <div class="form-section">
-<h3>🎓 Educación</h3>
+<h3> Educación</h3>
 <div id="educacion-list"></div>
 <button type="button" class="btn-add" onclick="addEducacion()">➕ Agregar Educación</button>
 </div>
@@ -138,7 +138,7 @@ Atención al Cliente - Certificación complementaria"></textarea>
 </div>
 
 <div class="form-section">
-<h3>️ Habilidades</h3>
+<h3>🛠️ Habilidades</h3>
 <textarea id="cv-habilidades" rows="3" placeholder="Ej: Excel, Liderazgo, Inglés, Ventas"></textarea>
 </div>
 
@@ -195,7 +195,6 @@ Atención al Cliente - Certificación complementaria"></textarea>
 </div>
 </div>
 
-<!-- UN SOLO BOTÓN GENERAR -->
 <button class="btn-generate" onclick="generarCV()">🎨 Generar CV y Ver Vista Previa</button>
 </div>
 
@@ -230,7 +229,7 @@ Atención al Cliente - Certificación complementaria"></textarea>
 </div>
 
 <div class="form-section">
-<h3> Datos del Documento</h3>
+<h3>📋 Datos del Documento</h3>
 <div class="form-grid">
 <div class="form-group">
 <label>Título</label>
@@ -259,12 +258,11 @@ Atención al Cliente - Certificación complementaria"></textarea>
 <textarea id="trans-contenido" rows="15" placeholder="Pega aquí el contenido..."></textarea>
 </div>
 
-<!-- UN SOLO BOTÓN GENERAR -->
 <button class="btn-generate" onclick="generarTranscripcion()">📝 Generar Transcripción</button>
 </div>
 </div>
 
-<!-- PASO 3: VISTA PREVIA -->
+<!-- PASO 3: VISTA PREVIA - OCULTO POR DEFECTO -->
 <div id="step-preview" class="step" style="display:none;">
 <div class="step-header">
 <span class="step-number">3</span>
@@ -273,12 +271,11 @@ Atención al Cliente - Certificación complementaria"></textarea>
 
 <div class="preview-controls">
 <button class="btn-edit" onclick="editarDocumento()">✏️ Editar Datos</button>
-<button class="btn-new" onclick="nuevoDocumento()"> Nuevo Documento</button>
+<button class="btn-new" onclick="nuevoDocumento()">🔄 Nuevo Documento</button>
 </div>
 
-<!-- SELECTOR DE ESTILOS EN VISTA PREVIA (solo para CV) -->
 <div id="style-changer-cv" class="style-changer" style="display:none;">
-<h3> Cambiar Estilo:</h3>
+<h3>🎨 Cambiar Estilo:</h3>
 <div class="style-selector-inline">
 <button class="style-btn" onclick="cambiarEstilo('moderno')">Moderno</button>
 <button class="style-btn" onclick="cambiarEstilo('clasico')">Clásico</button>
@@ -289,8 +286,8 @@ Atención al Cliente - Certificación complementaria"></textarea>
 </div>
 
 <div class="download-buttons">
-<button class="btn-download btn-pdf" onclick="descargarPDF()"> Descargar PDF</button>
-<button class="btn-download btn-word" onclick="descargarWord()"> Descargar Word</button>
+<button class="btn-download btn-pdf" onclick="descargarPDF()">📄 Descargar PDF</button>
+<button class="btn-download btn-word" onclick="descargarWord()">📝 Descargar Word</button>
 </div>
 
 <div id="document-preview" class="document-preview">
