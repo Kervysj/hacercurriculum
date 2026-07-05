@@ -10,7 +10,7 @@
 
 <header>
 <div class="header-content">
-<h1>📄 Generador de Documentos</h1>
+<h1> Generador de Documentos</h1>
 <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙 Modo Oscuro</button>
 </div>
 <p class="subtitle">CV, Cartas y Documentos - Automático</p>
@@ -32,10 +32,10 @@
 <div class="type-card" onclick="selectType('carta')">
 <div class="type-icon">✉️</div>
 <h3>Cartas</h3>
-<p>Plantillas o personalizadas</p>
+<p>14 plantillas organizadas</p>
 </div>
 <div class="type-card" onclick="selectType('legal')">
-<div class="type-icon">⚖️</div>
+<div class="type-icon">️</div>
 <h3>Documentos Legales</h3>
 <p>Transcripciones APA/Legal</p>
 </div>
@@ -79,7 +79,7 @@ IDIOMAS
 Español (Nativo), Inglés (Avanzado)"></textarea>
 
 <div class="foto-section">
-<h3>📷 Foto de Perfil (Opcional)</h3>
+<h3> Foto de Perfil (Opcional)</h3>
 <input type="text" id="cv-foto-url" placeholder="URL de imagen (opcional) - deja vacío si no quieres foto">
 <p style="font-size:0.9rem; color:var(--text-secondary); margin-top:8px;">💡 Puedes dejar este campo vacío si no deseas incluir foto</p>
 </div>
@@ -92,31 +92,30 @@ Español (Nativo), Inglés (Avanzado)"></textarea>
 <div class="document-options">
 <h3>📝 Tipo de Carta:</h3>
 <select id="carta-tipo" onchange="updateCartaPlaceholder()">
-<option value="formal">Carta Formal</option>
+<optgroup label="💼 Cartas Laborales y RRHH">
+<option value="trabajo">Carta de Trabajo</option>
 <option value="renuncia">Carta de Renuncia</option>
+<option value="despido">Carta de Despido</option>
 <option value="recomendacion">Carta de Recomendación</option>
-<option value="motivacion">Carta de Motivación</option>
-<option value="personal">Carta Personal</option>
+<option value="permiso">Carta de Permiso</option>
+</optgroup>
+<optgroup label="🏢 Cartas Administrativas y Comerciales">
+<option value="autorizacion">Carta de Autorización</option>
+<option value="compromiso">Carta de Compromiso</option>
+<option value="cobro">Carta de Cobro</option>
+<option value="presentacion">Carta de Presentación</option>
+<option value="agradecimiento">Carta de Agradecimiento</option>
+</optgroup>
+<optgroup label="⚖️ Cartas Personales y Legales">
+<option value="poder">Carta de Poder</option>
+<option value="invitacion">Carta de Invitación</option>
+<option value="explicacion">Carta de Explicación</option>
+<option value="reclamo">Carta de Reclamo</option>
+</optgroup>
 </select>
 </div>
 
-<textarea id="carta-texto" rows="15" placeholder="Carta Formal:
-
-[Ciudad, Fecha]
-
-Destinatario:
-[Nombre del destinatario]
-[Cargo]
-[Empresa/Institución]
-[Dirección]
-
-Estimado/a [Nombre]:
-
-[Cuerpo de la carta]
-
-Atentamente,
-[Tu nombre]
-[Tu cargo]"></textarea>
+<textarea id="carta-texto" rows="15" placeholder="Selecciona un tipo de carta para ver la plantilla..."></textarea>
 
 <button class="btn-generate" onclick="generarCarta()">📝 Generar Carta</button>
 </div>
