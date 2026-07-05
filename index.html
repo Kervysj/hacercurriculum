@@ -41,7 +41,7 @@
 <div id="step-data" class="step" style="display:none;">
 <div class="step-header">
 <span class="step-number">2</span>
-<h2 id="data-title">Ingresa tus datos</h2>
+<h2 id="data-title">Ingresa los datos de tu CV</h2>
 <button class="btn-back" onclick="goBackToType()">⬅ Cambiar tipo</button>
 </div>
 
@@ -49,11 +49,9 @@
 <div id="form-cv" style="display:none;">
 
 <!-- OPCIÓN RÁPIDA: PEGAR CV COMPLETO -->
-<div class="form-section" style="background: #dbeafe; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #3b82f6;">
-<h3 style="color: #1e3a8a;">📋 Opción Rápida: Pegar CV Completo</h3>
-<p style="margin-bottom: 15px; color: #4b5563;">
-Pega aquí todo tu currículum y el sistema lo organizará automáticamente en cada sección:
-</p>
+<div class="quick-parse-section">
+<h3>📋 Opción Rápida: Pegar CV Completo</h3>
+<p>Pega aquí todo tu currículum y el sistema lo organizará automáticamente:</p>
 <textarea id="cv-texto-completo" rows="12" placeholder="Ejemplo:
 
 SAMANTHA DE LOS ANGELES SUBERO FLORES
@@ -75,23 +73,18 @@ Gestión documental técnica y operativa...
 
 HABILIDADES Y CONOCIMIENTOS
 Software: Manejo avanzado de Microsoft Excel, Word y PowerPoint
-Administrativas: Control documental, archivo, organización...
 
 CURSOS REALIZADOS
 Atención al Cliente - Certificación complementaria
 Asistente Administrativo - CEFOIN (2017)"></textarea>
-<button class="btn-add-item" onclick="parsearCVCompleto()" style="margin-top: 15px; background: #1e3a8a; padding: 15px 30px; font-size: 1.1rem;">
+<button class="btn-parse" onclick="parsearCVCompleto()">
 🤖 Analizar y Organizar Automáticamente
 </button>
-<p style="margin-top: 10px; font-size: 0.9rem; color: #6b7280;">
-💡 El sistema detectará: datos personales, perfil, experiencia, educación, habilidades, idiomas y cursos
-</p>
+<p class="parse-hint">💡 El sistema detectará: datos personales, perfil, experiencia, educación, habilidades y cursos</p>
 </div>
 
-<hr style="margin: 30px 0; border: none; border-top: 2px dashed var(--border-color);">
-<p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px; font-weight: bold;">
-— O llena manualmente cada sección —
-</p>
+<hr class="divider">
+<p class="manual-hint">— O llena manualmente cada sección —</p>
 
 <div class="form-section">
 <h3>👤 Datos Personales</h3>
@@ -113,37 +106,37 @@ Asistente Administrativo - CEFOIN (2017)"></textarea>
 <input type="text" id="cv-ciudad" placeholder="Ej: Ciudad de México">
 </div>
 <div class="form-group">
-<label>LinkedIn / Web (opcional)</label>
+<label>LinkedIn / Web</label>
 <input type="text" id="cv-linkedin" placeholder="Ej: linkedin.com/in/juan">
 </div>
 <div class="form-group">
-<label>Foto (opcional - URL)</label>
-<input type="text" id="cv-foto" placeholder="Pega URL de foto o deja vacío">
+<label>Foto (URL opcional)</label>
+<input type="text" id="cv-foto" placeholder="https://ejemplo.com/foto.jpg">
 </div>
 </div>
 </div>
 
 <div class="form-section">
-<h3> Perfil Profesional</h3>
+<h3>🎯 Perfil Profesional</h3>
 <textarea id="cv-perfil" rows="4" placeholder="Breve descripción de tu perfil profesional..."></textarea>
 </div>
 
 <div class="form-section">
 <h3>💼 Experiencia Laboral</h3>
 <div id="experiencia-list"></div>
-<button class="btn-add-item" onclick="addExperiencia()">➕ Agregar Experiencia</button>
+<button type="button" class="btn-add" onclick="addExperiencia()">➕ Agregar Experiencia</button>
 </div>
 
 <div class="form-section">
 <h3>🎓 Educación</h3>
 <div id="educacion-list"></div>
-<button class="btn-add-item" onclick="addEducacion()">➕ Agregar Educación</button>
+<button type="button" class="btn-add" onclick="addEducacion()">➕ Agregar Educación</button>
 </div>
 
 <div class="form-section">
 <h3>📚 Cursos</h3>
 <div id="cursos-list"></div>
-<button class="btn-add-item" onclick="addCurso()">➕ Agregar Curso</button>
+<button type="button" class="btn-add" onclick="addCurso()">➕ Agregar Curso</button>
 </div>
 
 <div class="form-section">
@@ -153,25 +146,23 @@ Asistente Administrativo - CEFOIN (2017)"></textarea>
 
 <div class="form-section">
 <h3>🌐 Idiomas</h3>
-<textarea id="cv-idiomas" rows="2" placeholder="Ej: Español (Nativo), Inglés (Avanzado), Francés (Básico)"></textarea>
+<textarea id="cv-idiomas" rows="2" placeholder="Ej: Español (Nativo), Inglés (Avanzado)"></textarea>
 </div>
 
 <div class="form-section">
-<h3>️ Opciones de CV</h3>
-<div class="options-box">
+<h3>⚙️ Opciones</h3>
 <label class="checkbox-label">
 <input type="checkbox" id="cv-completo" checked onchange="toggleSecciones()">
 <span>Mostrar CV Completo (todas las secciones)</span>
 </label>
 <div id="secciones-select" style="display:none; margin-top:15px;">
-<p style="font-weight:bold; margin-bottom:10px;">Selecciona qué secciones mostrar:</p>
-<label class="checkbox-label"><input type="checkbox" class="seccion-check" value="perfil" checked> Perfil Profesional</label>
-<label class="checkbox-label"><input type="checkbox" class="seccion-check" value="experiencia" checked> Experiencia Laboral</label>
+<p style="font-weight:bold; margin-bottom:10px;">Selecciona secciones:</p>
+<label class="checkbox-label"><input type="checkbox" class="seccion-check" value="perfil" checked> Perfil</label>
+<label class="checkbox-label"><input type="checkbox" class="seccion-check" value="experiencia" checked> Experiencia</label>
 <label class="checkbox-label"><input type="checkbox" class="seccion-check" value="educacion" checked> Educación</label>
 <label class="checkbox-label"><input type="checkbox" class="seccion-check" value="cursos" checked> Cursos</label>
 <label class="checkbox-label"><input type="checkbox" class="seccion-check" value="habilidades" checked> Habilidades</label>
 <label class="checkbox-label"><input type="checkbox" class="seccion-check" value="idiomas" checked> Idiomas</label>
-</div>
 </div>
 </div>
 
@@ -205,25 +196,27 @@ Asistente Administrativo - CEFOIN (2017)"></textarea>
 </label>
 </div>
 </div>
+
+<button class="btn-generate" onclick="generateDocument()">🎨 Generar Documento</button>
 </div>
 
 <!-- FORMULARIO TRANSCRIPCIÓN -->
 <div id="form-transcripcion" style="display:none;">
 <div class="form-section">
-<h3>⚙️ Configuración de Transcripción</h3>
+<h3>⚙️ Configuración</h3>
 <div class="form-grid">
 <div class="form-group">
-<label>Tipo de Formato *</label>
+<label>Tipo de Formato</label>
 <select id="trans-tipo">
-<option value="apa">📚 Normas APA (Académico)</option>
+<option value="apa">📚 Normas APA</option>
 <option value="legal">⚖️ Documento Legal</option>
 </select>
 </div>
 <div class="form-group">
 <label>Tamaño de Fuente</label>
 <select id="trans-fuente">
-<option value="11">11 pt (Arial)</option>
-<option value="12" selected>12 pt (Times New Roman)</option>
+<option value="11">11 pt</option>
+<option value="12" selected>12 pt</option>
 </select>
 </div>
 <div class="form-group">
@@ -231,7 +224,7 @@ Asistente Administrativo - CEFOIN (2017)"></textarea>
 <select id="trans-interlineado">
 <option value="1">Simple (1.0)</option>
 <option value="1.5">1.5 líneas</option>
-<option value="2" selected>Doble (2.0) - APA estándar</option>
+<option value="2" selected>Doble (2.0)</option>
 </select>
 </div>
 </div>
@@ -241,47 +234,58 @@ Asistente Administrativo - CEFOIN (2017)"></textarea>
 <h3>📋 Datos del Documento</h3>
 <div class="form-grid">
 <div class="form-group">
-<label>Título del Documento</label>
-<input type="text" id="trans-titulo" placeholder="Ej: Entrevista con experto en marketing">
+<label>Título</label>
+<input type="text" id="trans-titulo" placeholder="Ej: Entrevista">
 </div>
 <div class="form-group">
 <label>Fecha</label>
 <input type="date" id="trans-fecha">
 </div>
 <div class="form-group">
-<label>Lugar (opcional)</label>
-<input type="text" id="trans-lugar" placeholder="Ej: Oficina central, CDMX">
+<label>Lugar</label>
+<input type="text" id="trans-lugar" placeholder="Ej: Oficina">
 </div>
 <div class="form-group">
-<label>Participantes (opcional)</label>
-<input type="text" id="trans-participantes" placeholder="Ej: Juan Pérez, María García">
+<label>Participantes</label>
+<input type="text" id="trans-participantes" placeholder="Ej: Juan, María">
 </div>
 </div>
 </div>
 
 <div class="form-section">
-<h3>📝 Contenido de la Transcripción</h3>
-<p style="color:var(--text-secondary); margin-bottom:10px;">
-<strong>Formato APA:</strong> Escribe párrafos normales, se formatearán automáticamente.<br>
-<strong>Legal:</strong> Usa formato <strong>NOMBRE:</strong> texto (Ej: ABOGADO: ¿Cuál es su nombre?)
+<h3>📝 Contenido</h3>
+<p style="color:var(--text-secondary); margin-bottom:10px; font-size:0.9rem;">
+<strong>Legal:</strong> Usa formato NOMBRE: texto (Ej: ABOGADO: ¿Cuál es su nombre?)
 </p>
-<textarea id="trans-contenido" rows="15" placeholder="Pega aquí el contenido de tu transcripción..."></textarea>
+<textarea id="trans-contenido" rows="15" placeholder="Pega aquí el contenido..."></textarea>
 </div>
 </div>
 
 <button class="btn-generate" onclick="generateDocument()">🎨 Generar Documento</button>
 </div>
 
-<!-- PASO 3: VISTA PREVIA Y DESCARGA -->
+<!-- PASO 3: VISTA PREVIA -->
 <div id="step-preview" class="step" style="display:none;">
 <div class="step-header">
 <span class="step-number">3</span>
-<h2>Vista Previa del Documento</h2>
+<h2>Vista Previa</h2>
 </div>
 
 <div class="preview-controls">
-<button class="btn-back" onclick="goBackToEdit()">⬅ Editar datos</button>
-<button class="btn-new" onclick="startOver()">🔄 Hacer Otro Documento</button>
+<button class="btn-back" onclick="goBackToEdit()">✏️ Editar Datos</button>
+<button class="btn-new" onclick="startOver()">🔄 Nuevo Documento</button>
+</div>
+
+<!-- SELECTOR DE ESTILOS EN VISTA PREVIA -->
+<div class="style-changer">
+<h3>🎨 Cambiar Estilo:</h3>
+<div class="style-selector-inline">
+<button class="style-btn" onclick="changeStyle('moderno')">Moderno</button>
+<button class="style-btn" onclick="changeStyle('clasico')">Clásico</button>
+<button class="style-btn" onclick="changeStyle('creativo')">Creativo</button>
+<button class="style-btn" onclick="changeStyle('minimalista')">Minimalista</button>
+<button class="style-btn" onclick="changeStyle('profesional')">Profesional</button>
+</div>
 </div>
 
 <div class="download-buttons">
