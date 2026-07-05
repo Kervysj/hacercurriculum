@@ -3,281 +3,100 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Generador de CV y Transcripciones</title>
+<title>Generador de CV Automático</title>
 <link rel="stylesheet" href="generador.css">
 </head>
 <body>
 
 <header>
 <div class="header-content">
-<h1>📄 Generador de Documentos</h1>
+<h1>📄 Generador de CV Automático</h1>
 <button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙 Modo Oscuro</button>
 </div>
-<p class="subtitle">Crea currículums profesionales y transcripciones con formato APA o legal</p>
+<p class="subtitle">Pega tu CV y lo analizamos automáticamente</p>
 </header>
 
 <main>
-<!-- PASO 1: TIPO DE DOCUMENTO - VISIBLE POR DEFECTO -->
-<div id="step-type" class="step">
+<!-- PASO 1: PEGAR CV -->
+<div id="step-input" class="step">
 <div class="step-header">
 <span class="step-number">1</span>
-<h2>¿Qué tipo de documento necesitas?</h2>
-</div>
-<div class="type-grid">
-<div class="type-card" onclick="selectType('cv')">
-<div class="type-icon">👤</div>
-<h3>Currículum Vitae</h3>
-<p>5 estilos profesionales para elegir</p>
-</div>
-<div class="type-card" onclick="selectType('transcripcion')">
-<div class="type-icon">📝</div>
-<h3>Transcripción</h3>
-<p>Formato APA o Documento Legal</p>
-</div>
-</div>
+<h2>Pega tu Currículum</h2>
 </div>
 
-<!-- PASO 2: FORMULARIO - OCULTO POR DEFECTO -->
-<div id="step-form" class="step" style="display:none;">
-<div class="step-header">
-<span class="step-number">2</span>
-<h2 id="form-title">Ingresa tus datos</h2>
-<button class="btn-back" onclick="goToStep('step-type')">⬅ Volver</button>
-</div>
+<div class="input-section">
+<textarea id="cv-texto" rows="15" placeholder="Pega aquí todo el texto de tu currículum...
 
-<!-- FORMULARIO CV -->
-<div id="form-cv" style="display:none;">
+Ejemplo:
 
-<!-- OPCIÓN RÁPIDA: PEGAR CV COMPLETO -->
-<div class="quick-parse-section">
-<h3>📋 Opción Rápida: Pegar CV Completo</h3>
-<p>Pega aquí todo tu currículum y el sistema lo organizará automáticamente:</p>
-<textarea id="cv-texto-completo" rows="12" placeholder="Ejemplo:
-
-SAMANTHA DE LOS ANGELES SUBERO FLORES
-Técnico Superior Universitario en Mantenimiento
-Cédula: V-28.476.617
-San José de Guanipa, Edo. Anzoátegui
-Teléfono: 0412-497-8773 / 0414-804-1214
+JUAN PÉREZ GARCÍA
+Ingeniero en Sistemas
+Teléfono: 555-123-4567
+Email: juan@email.com
+Ciudad: Ciudad de México
 
 PERFIL PROFESIONAL
-TSU en Mantenimiento con experiencia en áreas administrativas...
-
-FORMACIÓN ACADÉMICA
-Técnico Superior Universitario en Mantenimiento - UPTJAA
+Ingeniero con 5 años de experiencia en desarrollo de software...
 
 EXPERIENCIA LABORAL
-Departamento Administrativo - Mantenimiento Mayor PDVSA
-Gestión documental técnica y operativa...
+Desarrollador Senior - Empresa ABC (2020 - Actualidad)
+- Desarrollo de aplicaciones web
+- Liderazgo de equipo técnico
 
-HABILIDADES Y CONOCIMIENTOS
-Software: Manejo avanzado de Microsoft Excel, Word y PowerPoint
+EDUCACIÓN
+Ingeniería en Sistemas - Universidad Nacional (2015 - 2019)
 
-CURSOS REALIZADOS
-Atención al Cliente - Certificación complementaria"></textarea>
-<button class="btn-parse" onclick="parsearCVCompleto()">
-🤖 Analizar y Organizar Automáticamente
+HABILIDADES
+JavaScript, Python, React, Node.js
+
+IDIOMAS
+Español (Nativo), Inglés (Avanzado)
+
+CURSOS
+Certificación AWS - Amazon (2021)"></textarea>
+
+<div class="foto-section">
+<h3>📷 Foto de Perfil (Opcional)</h3>
+<div class="foto-options">
+<label class="foto-option">
+<input type="radio" name="foto-type" value="url" checked onchange="toggleFotoType()">
+<span>URL de imagen</span>
+</label>
+<label class="foto-option">
+<input type="radio" name="foto-type" value="upload" onchange="toggleFotoType()">
+<span>Subir archivo</span>
+</label>
+</div>
+<div id="foto-url-container">
+<input type="text" id="cv-foto-url" placeholder="https://ejemplo.com/tu-foto.jpg">
+</div>
+<div id="foto-upload-container" style="display:none;">
+<input type="file" id="cv-foto-file" accept="image/*" onchange="handleFotoUpload(event)">
+</div>
+</div>
+
+<button class="btn-analyze" onclick="analizarCV()">
+🤖 Analizar y Generar CV
 </button>
-<p class="parse-hint"> El sistema detectará: datos personales, perfil, experiencia, educación, habilidades y cursos</p>
-</div>
-
-<hr class="divider">
-<p class="manual-hint">— O llena manualmente cada sección —</p>
-
-<div class="form-section">
-<h3>👤 Datos Personales</h3>
-<div class="form-grid">
-<div class="form-group">
-<label>Nombre Completo *</label>
-<input type="text" id="cv-nombre" placeholder="Ej: Juan Pérez García">
-</div>
-<div class="form-group">
-<label>Teléfono</label>
-<input type="tel" id="cv-telefono" placeholder="Ej: 555-123-4567">
-</div>
-<div class="form-group">
-<label>Email</label>
-<input type="email" id="cv-email" placeholder="Ej: juan@email.com">
-</div>
-<div class="form-group">
-<label>Ciudad</label>
-<input type="text" id="cv-ciudad" placeholder="Ej: Ciudad de México">
-</div>
-<div class="form-group">
-<label>LinkedIn / Web</label>
-<input type="text" id="cv-linkedin" placeholder="Ej: linkedin.com/in/juan">
-</div>
-<div class="form-group">
-<label>Foto (URL opcional)</label>
-<input type="text" id="cv-foto" placeholder="https://ejemplo.com/foto.jpg">
-</div>
 </div>
 </div>
 
-<div class="form-section">
-<h3>🎯 Perfil Profesional</h3>
-<textarea id="cv-perfil" rows="4" placeholder="Breve descripción de tu perfil profesional..."></textarea>
-</div>
-
-<div class="form-section">
-<h3>💼 Experiencia Laboral</h3>
-<div id="experiencia-list"></div>
-<button type="button" class="btn-add" onclick="addExperiencia()">➕ Agregar Experiencia</button>
-</div>
-
-<div class="form-section">
-<h3> Educación</h3>
-<div id="educacion-list"></div>
-<button type="button" class="btn-add" onclick="addEducacion()">➕ Agregar Educación</button>
-</div>
-
-<div class="form-section">
-<h3>📚 Cursos</h3>
-<div id="cursos-list"></div>
-<button type="button" class="btn-add" onclick="addCurso()">➕ Agregar Curso</button>
-</div>
-
-<div class="form-section">
-<h3>🛠️ Habilidades</h3>
-<textarea id="cv-habilidades" rows="3" placeholder="Ej: Excel, Liderazgo, Inglés, Ventas"></textarea>
-</div>
-
-<div class="form-section">
-<h3>🌐 Idiomas</h3>
-<textarea id="cv-idiomas" rows="2" placeholder="Ej: Español (Nativo), Inglés (Avanzado)"></textarea>
-</div>
-
-<div class="form-section">
-<h3>⚙️ Opciones</h3>
-<label class="checkbox-label">
-<input type="checkbox" id="cv-completo" checked onchange="toggleSecciones()">
-<span>Mostrar CV Completo (todas las secciones)</span>
-</label>
-<div id="secciones-select" style="display:none; margin-top:15px;">
-<p style="font-weight:bold; margin-bottom:10px;">Selecciona secciones:</p>
-<label class="checkbox-label"><input type="checkbox" class="seccion-check" value="perfil" checked> Perfil</label>
-<label class="checkbox-label"><input type="checkbox" class="seccion-check" value="experiencia" checked> Experiencia</label>
-<label class="checkbox-label"><input type="checkbox" class="seccion-check" value="educacion" checked> Educación</label>
-<label class="checkbox-label"><input type="checkbox" class="seccion-check" value="cursos" checked> Cursos</label>
-<label class="checkbox-label"><input type="checkbox" class="seccion-check" value="habilidades" checked> Habilidades</label>
-<label class="checkbox-label"><input type="checkbox" class="seccion-check" value="idiomas" checked> Idiomas</label>
-</div>
-</div>
-
-<div class="form-section">
-<h3>🎨 Estilo del CV</h3>
-<div class="style-selector">
-<label class="style-option">
-<input type="radio" name="cv-style" value="moderno" checked>
-<span class="style-name">Moderno</span>
-<span class="style-desc">Barra lateral azul</span>
-</label>
-<label class="style-option">
-<input type="radio" name="cv-style" value="clasico">
-<span class="style-name">Clásico</span>
-<span class="style-desc">Blanco y negro</span>
-</label>
-<label class="style-option">
-<input type="radio" name="cv-style" value="creativo">
-<span class="style-name">Creativo</span>
-<span class="style-desc">Colores naranja</span>
-</label>
-<label class="style-option">
-<input type="radio" name="cv-style" value="minimalista">
-<span class="style-name">Minimalista</span>
-<span class="style-desc">Limpio y elegante</span>
-</label>
-<label class="style-option">
-<input type="radio" name="cv-style" value="profesional">
-<span class="style-name">Profesional</span>
-<span class="style-desc">Azul corporativo</span>
-</label>
-</div>
-</div>
-
-<button class="btn-generate" onclick="generarCV()">🎨 Generar CV y Ver Vista Previa</button>
-</div>
-
-<!-- FORMULARIO TRANSCRIPCIÓN -->
-<div id="form-transcripcion" style="display:none;">
-<div class="form-section">
-<h3>⚙️ Configuración</h3>
-<div class="form-grid">
-<div class="form-group">
-<label>Tipo de Formato</label>
-<select id="trans-tipo">
-<option value="apa">📚 Normas APA</option>
-<option value="legal">⚖️ Documento Legal</option>
-</select>
-</div>
-<div class="form-group">
-<label>Tamaño de Fuente</label>
-<select id="trans-fuente">
-<option value="11">11 pt</option>
-<option value="12" selected>12 pt</option>
-</select>
-</div>
-<div class="form-group">
-<label>Interlineado</label>
-<select id="trans-interlineado">
-<option value="1">Simple (1.0)</option>
-<option value="1.5">1.5 líneas</option>
-<option value="2" selected>Doble (2.0)</option>
-</select>
-</div>
-</div>
-</div>
-
-<div class="form-section">
-<h3>📋 Datos del Documento</h3>
-<div class="form-grid">
-<div class="form-group">
-<label>Título</label>
-<input type="text" id="trans-titulo" placeholder="Ej: Entrevista">
-</div>
-<div class="form-group">
-<label>Fecha</label>
-<input type="date" id="trans-fecha">
-</div>
-<div class="form-group">
-<label>Lugar</label>
-<input type="text" id="trans-lugar" placeholder="Ej: Oficina">
-</div>
-<div class="form-group">
-<label>Participantes</label>
-<input type="text" id="trans-participantes" placeholder="Ej: Juan, María">
-</div>
-</div>
-</div>
-
-<div class="form-section">
-<h3>📝 Contenido</h3>
-<p style="color:var(--text-secondary); margin-bottom:10px; font-size:0.9rem;">
-<strong>Legal:</strong> Usa formato NOMBRE: texto (Ej: ABOGADO: ¿Cuál es su nombre?)
-</p>
-<textarea id="trans-contenido" rows="15" placeholder="Pega aquí el contenido..."></textarea>
-</div>
-
-<button class="btn-generate" onclick="generarTranscripcion()">📝 Generar Transcripción</button>
-</div>
-</div>
-
-<!-- PASO 3: VISTA PREVIA - OCULTO POR DEFECTO -->
+<!-- PASO 2: VISTA PREVIA -->
 <div id="step-preview" class="step" style="display:none;">
 <div class="step-header">
-<span class="step-number">3</span>
-<h2>Vista Previa del Documento</h2>
+<span class="step-number">2</span>
+<h2>Vista Previa de tu CV</h2>
 </div>
 
 <div class="preview-controls">
-<button class="btn-edit" onclick="editarDocumento()">✏️ Editar Datos</button>
-<button class="btn-new" onclick="nuevoDocumento()">🔄 Nuevo Documento</button>
+<button class="btn-back" onclick="editarCV()">✏️ Editar / Corregir</button>
+<button class="btn-new" onclick="nuevoCV()">🔄 Nuevo CV</button>
 </div>
 
-<div id="style-changer-cv" class="style-changer" style="display:none;">
-<h3>🎨 Cambiar Estilo:</h3>
-<div class="style-selector-inline">
-<button class="style-btn" onclick="cambiarEstilo('moderno')">Moderno</button>
+<div class="style-selector-preview">
+<h3>🎨 Elige un Estilo:</h3>
+<div class="style-buttons">
+<button class="style-btn active" onclick="cambiarEstilo('moderno')">Moderno</button>
 <button class="style-btn" onclick="cambiarEstilo('clasico')">Clásico</button>
 <button class="style-btn" onclick="cambiarEstilo('creativo')">Creativo</button>
 <button class="style-btn" onclick="cambiarEstilo('minimalista')">Minimalista</button>
@@ -286,12 +105,16 @@ Atención al Cliente - Certificación complementaria"></textarea>
 </div>
 
 <div class="download-buttons">
-<button class="btn-download btn-pdf" onclick="descargarPDF()">📄 Descargar PDF</button>
-<button class="btn-download btn-word" onclick="descargarWord()">📝 Descargar Word</button>
+<button class="btn-download btn-pdf" onclick="descargarPDF()">
+📄 Descargar PDF
+</button>
+<button class="btn-download btn-word" onclick="descargarWord()">
+📝 Descargar Word
+</button>
 </div>
 
-<div id="document-preview" class="document-preview">
-<!-- Aquí se renderiza el documento -->
+<div id="cv-preview" class="cv-preview">
+<!-- Aquí se muestra el CV generado -->
 </div>
 </div>
 
