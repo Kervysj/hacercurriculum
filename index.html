@@ -47,6 +47,52 @@
 
 <!-- FORMULARIO CV -->
 <div id="form-cv" style="display:none;">
+
+<!-- OPCIÓN RÁPIDA: PEGAR CV COMPLETO -->
+<div class="form-section" style="background: #dbeafe; padding: 20px; border-radius: 10px; margin-bottom: 20px; border-left: 5px solid #3b82f6;">
+<h3 style="color: #1e3a8a;">📋 Opción Rápida: Pegar CV Completo</h3>
+<p style="margin-bottom: 15px; color: #4b5563;">
+Pega aquí todo tu currículum y el sistema lo organizará automáticamente en cada sección:
+</p>
+<textarea id="cv-texto-completo" rows="12" placeholder="Ejemplo:
+
+SAMANTHA DE LOS ANGELES SUBERO FLORES
+Técnico Superior Universitario en Mantenimiento
+Cédula: V-28.476.617
+San José de Guanipa, Edo. Anzoátegui
+Teléfono: 0412-497-8773 / 0414-804-1214
+
+PERFIL PROFESIONAL
+TSU en Mantenimiento con experiencia en áreas administrativas...
+
+FORMACIÓN ACADÉMICA
+Técnico Superior Universitario en Mantenimiento - UPTJAA
+Bachiller - Liceo Nacional Dr. Felipe Guevara Rojas
+
+EXPERIENCIA LABORAL
+Departamento Administrativo y de Campo - Mantenimiento Mayor PDVSA
+Gestión documental técnica y operativa...
+
+HABILIDADES Y CONOCIMIENTOS
+Software: Manejo avanzado de Microsoft Excel, Word y PowerPoint
+Administrativas: Control documental, archivo, organización...
+
+CURSOS REALIZADOS
+Atención al Cliente - Certificación complementaria
+Asistente Administrativo - CEFOIN (2017)"></textarea>
+<button class="btn-add-item" onclick="parsearCVCompleto()" style="margin-top: 15px; background: #1e3a8a; padding: 15px 30px; font-size: 1.1rem;">
+🤖 Analizar y Organizar Automáticamente
+</button>
+<p style="margin-top: 10px; font-size: 0.9rem; color: #6b7280;">
+💡 El sistema detectará: datos personales, perfil, experiencia, educación, habilidades, idiomas y cursos
+</p>
+</div>
+
+<hr style="margin: 30px 0; border: none; border-top: 2px dashed var(--border-color);">
+<p style="text-align: center; color: var(--text-secondary); margin-bottom: 20px; font-weight: bold;">
+— O llena manualmente cada sección —
+</p>
+
 <div class="form-section">
 <h3>👤 Datos Personales</h3>
 <div class="form-grid">
@@ -78,7 +124,7 @@
 </div>
 
 <div class="form-section">
-<h3>🎯 Perfil Profesional</h3>
+<h3> Perfil Profesional</h3>
 <textarea id="cv-perfil" rows="4" placeholder="Breve descripción de tu perfil profesional..."></textarea>
 </div>
 
@@ -111,7 +157,7 @@
 </div>
 
 <div class="form-section">
-<h3>⚙️ Opciones de CV</h3>
+<h3>️ Opciones de CV</h3>
 <div class="options-box">
 <label class="checkbox-label">
 <input type="checkbox" id="cv-completo" checked onchange="toggleSecciones()">
