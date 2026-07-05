@@ -1,5 +1,5 @@
 /* ============================================
-   VARIABLES DE COLORES (MODO CLARO / OSCURO)
+   VARIABLES DE COLORES
    ============================================ */
 :root {
     --bg-primary: #f4f7f6;
@@ -29,9 +29,6 @@ body.dark-mode {
     --input-bg: #4b5563;
 }
 
-/* ============================================
-   RESET Y BASE
-   ============================================ */
 * {
     margin: 0;
     padding: 0;
@@ -47,9 +44,6 @@ body {
     line-height: 1.6;
 }
 
-/* ============================================
-   HEADER
-   ============================================ */
 header {
     text-align: center;
     margin-bottom: 30px;
@@ -152,7 +146,7 @@ main {
 }
 
 /* ============================================
-   SELECCIÓN DE TIPO DE DOCUMENTO
+   SELECCIÓN DE TIPO
    ============================================ */
 .type-grid {
     display: grid;
@@ -188,6 +182,105 @@ main {
 
 .type-card p {
     color: var(--text-secondary);
+}
+
+/* ============================================
+   SECCIÓN DE PARSEO RÁPIDO
+   ============================================ */
+.quick-parse-section {
+    background: #dbeafe;
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    border-left: 5px solid #3b82f6;
+}
+
+body.dark-mode .quick-parse-section {
+    background: #1e3a5f;
+    border-left-color: #60a5fa;
+}
+
+.quick-parse-section h3 {
+    color: #1e3a8a;
+    margin-bottom: 15px;
+    font-size: 1.3rem;
+}
+
+body.dark-mode .quick-parse-section h3 {
+    color: #93c5fd;
+}
+
+.quick-parse-section p {
+    margin-bottom: 15px;
+    color: #4b5563;
+}
+
+body.dark-mode .quick-parse-section p {
+    color: #d1d5db;
+}
+
+.quick-parse-section textarea {
+    width: 100%;
+    padding: 15px;
+    border: 2px solid #93c5fd;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 200px;
+    background: white;
+    color: #333;
+}
+
+body.dark-mode .quick-parse-section textarea {
+    background: #374151;
+    color: #f9fafb;
+    border-color: #4b5563;
+}
+
+.btn-parse {
+    margin-top: 15px;
+    padding: 15px 30px;
+    background: #1e3a8a;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.btn-parse:hover {
+    background: #1e40af;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3);
+}
+
+.parse-hint {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #6b7280;
+}
+
+body.dark-mode .parse-hint {
+    color: #9ca3af;
+}
+
+.divider {
+    margin: 30px 0;
+    border: none;
+    border-top: 2px dashed var(--border-color);
+}
+
+.manual-hint {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    font-weight: bold;
 }
 
 /* ============================================
@@ -253,7 +346,7 @@ main {
     min-height: 100px;
 }
 
-/* Items dinámicos (Experiencia, Educación, Cursos) */
+/* Items dinámicos */
 .item-row {
     background: var(--bg-primary);
     padding: 20px;
@@ -286,8 +379,7 @@ main {
     transform: scale(1.1);
 }
 
-/* Botones de agregar */
-.btn-add-item {
+.btn-add {
     padding: 10px 20px;
     background: var(--success);
     color: white;
@@ -301,21 +393,14 @@ main {
     gap: 5px;
 }
 
-.btn-add-item:hover {
+.btn-add:hover {
     background: #059669;
     transform: translateY(-2px);
 }
 
 /* ============================================
-   OPCIONES (Checkboxes)
+   OPCIONES
    ============================================ */
-.options-box {
-    background: var(--bg-primary);
-    padding: 20px;
-    border-radius: 10px;
-    border: 1px solid var(--border-color);
-}
-
 .checkbox-label {
     display: flex;
     align-items: center;
@@ -334,7 +419,7 @@ main {
 }
 
 /* ============================================
-   SELECTOR DE ESTILOS DE CV
+   SELECTOR DE ESTILOS
    ============================================ */
 .style-selector {
     display: grid;
@@ -406,7 +491,7 @@ body.dark-mode .style-option:has(input:checked) {
 }
 
 /* ============================================
-   VISTA PREVIA Y DESCARGA
+   VISTA PREVIA
    ============================================ */
 .preview-controls {
     display: flex;
@@ -428,6 +513,46 @@ body.dark-mode .style-option:has(input:checked) {
 
 .btn-new:hover {
     background: #d97706;
+}
+
+/* NUEVO: Selector de estilos en vista previa */
+.style-changer {
+    background: var(--bg-primary);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 2px solid var(--border-color);
+}
+
+.style-changer h3 {
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.style-selector-inline {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.style-btn {
+    padding: 10px 20px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.style-btn:hover {
+    border-color: var(--primary);
+    background: #dbeafe;
+}
+
+body.dark-mode .style-btn:hover {
+    background: #1e3a8a;
 }
 
 .download-buttons {
@@ -476,10 +601,8 @@ body.dark-mode .style-option:has(input:checked) {
 }
 
 /* ============================================
-   ESTILOS INTERNOS DE LOS CV (PARA VISTA PREVIA)
+   ESTILOS DE CV
    ============================================ */
-
-/* 1. MODERNO */
 .cv-moderno {
     display: grid;
     grid-template-columns: 1fr 2fr;
@@ -499,7 +622,6 @@ body.dark-mode .style-option:has(input:checked) {
     padding: 10px;
 }
 
-/* 2. CLÁSICO */
 .cv-clasico {
     text-align: center;
     font-family: 'Georgia', serif;
@@ -515,7 +637,6 @@ body.dark-mode .style-option:has(input:checked) {
     padding-bottom: 5px;
 }
 
-/* 3. CREATIVO */
 .cv-creativo {
     font-family: 'Segoe UI', sans-serif;
 }
@@ -530,7 +651,6 @@ body.dark-mode .style-option:has(input:checked) {
     color: #f59e0b;
 }
 
-/* 4. MINIMALISTA */
 .cv-minimalista {
     font-family: 'Georgia', serif;
     color: #222;
@@ -550,7 +670,6 @@ body.dark-mode .style-option:has(input:checked) {
     color: #555;
 }
 
-/* 5. PROFESIONAL */
 .cv-profesional {
     display: grid;
     grid-template-columns: 1fr 2fr;
@@ -599,7 +718,7 @@ body.dark-mode .style-option:has(input:checked) {
 }
 
 /* ============================================
-   RESPONSIVE (MÓVILES)
+   RESPONSIVE
    ============================================ */
 @media (max-width: 768px) {
     .header-content {
@@ -623,10 +742,18 @@ body.dark-mode .style-option:has(input:checked) {
     .step {
         padding: 20px;
     }
+    
+    .style-selector-inline {
+        flex-direction: column;
+    }
+    
+    .style-btn {
+        width: 100%;
+    }
 }
 
 /* ============================================
-   ESTILOS DE IMPRESIÓN (PARA PDF)
+   IMPRESIÓN
    ============================================ */
 @media print {
     body * {
