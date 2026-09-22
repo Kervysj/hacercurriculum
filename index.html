@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Documentos Profesional</title>
+<link rel="stylesheet" href="generador.css">
+</head>
+<body>
+
+<header>
+<div class="header-content">
+<h1> Generador de Documentos</h1>
+<button id="theme-toggle" class="theme-toggle" onclick="toggleTheme()">🌙 Modo Oscuro</button>
+</div>
+<p class="subtitle">CV, Cartas y Documentos - Automático</p>
+</header>
+
+<main>
+<!-- SELECCIÓN DE TIPO -->
+<div id="step-type" class="step">
+<div class="step-header">
+<span class="step-number">1</span>
+<h2>¿Qué tipo de documento necesitas?</h2>
+</div>
+<div class="type-grid">
+<div class="type-card" onclick="selectType('cv')">
+<div class="type-icon">👤</div>
+<h3>Currículum Vitae</h3>
+<p>5 estilos profesionales</p>
+</div>
+<div class="type-card" onclick="selectType('carta')">
+<div class="type-icon">✉️</div>
+<h3>Cartas</h3>
+<p>26 plantillas organizadas</p>
+</div>
+<div class="type-card" onclick="selectType('legal')">
+<div class="type-icon">️</div>
+<h3>Documentos Legales</h3>
+<p>Transcripciones APA/Legal</p>
+</div>
+</div>
+</div>
+
+<!-- PASO 2: INPUT -->
+<div id="step-input" class="step" style="display:none;">
+<div class="step-header">
+<span class="step-number">2</span>
+<h2 id="input-title">Configura tu documento</h2>
+<button class="btn-back" onclick="goToStep('step-type')">⬅ Volver</button>
+</div>
+
+<!-- CV INPUT -->
+<div id="cv-input" style="display:none;">
+<textarea id="cv-texto" rows="12" placeholder="Pega aquí tu CV completo...
+
+Ejemplo:
+
+JUAN PÉREZ GARCÍA
+Ingeniero en Sistemas
+Teléfono: 555-123-4567
+Email: juan@email.com
+Ciudad: Ciudad de México
+
+PERFIL PROFESIONAL
+Ingeniero con 5 años de experiencia...
+
+EXPERIENCIA LABORAL
+Desarrollador Senior - Empresa ABC (2020 - Actualidad)
+- Desarrollo de aplicaciones web
+
+EDUCACIÓN
+Ingeniería en Sistemas - Universidad Nacional (2015-2019)
+
+HABILIDADES
+JavaScript, Python, React
+
+IDIOMAS
+Español (Nativo), Inglés (Avanzado)"></textarea>
+
+<div class="foto-section">
+<h3> Foto de Perfil (Opcional)</h3>
+<input type="text" id="cv-foto-url" placeholder="URL de imagen (opcional) - deja vacío si no quieres foto">
+<p style="font-size:0.9rem; color:var(--text-secondary); margin-top:8px;">💡 Puedes dejar este campo vacío si no deseas incluir foto</p>
+</div>
+
+<button class="btn-generate" onclick="generarCV()">🎨 Generar CV</button>
+</div>
+
+<!-- CARTA INPUT -->
+<div id="carta-input" style="display:none;">
+<div class="document-options">
+<h3>📝 Tipo de Carta:</h3>
+<select id="carta-tipo" onchange="updateCartaPlaceholder()">
+<optgroup label="💼 Cartas Laborales y RRHH">
+<option value="trabajo">Carta de Trabajo</option>
+<option value="renuncia">Carta de Renuncia</option>
+<option value="despido">Carta de Despido</option>
+<option value="recomendacion">Carta de Recomendación</option>
+<option value="permiso">Carta de Permiso</option>
+<option value="aumentosalarial">Solicitud de Aumento Salarial</option>
+<option value="vacaciones">Solicitud de Vacaciones</option>
+<option value="finiquito">Carta de Finiquito y Liquidación</option>
+</optgroup>
+<optgroup label="🏢 Cartas Administrativas y Comerciales">
+<option value="autorizacion">Carta de Autorización</option>
+<option value="compromiso">Carta de Compromiso</option>
+<option value="compromisopago">Carta de Compromiso de Pago</option>
+<option value="cobro">Carta de Cobro</option>
+<option value="noadeudo">Constancia de No Adeudo</option>
+<option value="presentacion">Carta de Presentación</option>
+<option value="agradecimiento">Carta de Agradecimiento</option>
+<option value="felicitacioncomercial">Felicitación / Agradecimiento Comercial</option>
+<option value="bienvenida">Carta de Bienvenida</option>
+</optgroup>
+<optgroup label="⚖️ Cartas Personales y Legales">
+<option value="poder">Carta de Poder</option>
+<option value="invitacion">Carta de Invitación</option>
+<option value="explicacion">Carta de Explicación</option>
+<option value="reclamo">Carta de Reclamo</option>
+<option value="justificante">Justificante Médico / Laboral</option>
+<option value="rescisionalquiler">Rescisión de Contrato de Alquiler</option>
+<option value="autorizacionmenor">Autorización de Viaje de Menor</option>
+<option value="buenaconducta">Carta de Buena Conducta</option>
+<option value="referenciapersonal">Carta de Referencia Personal</option>
+</optgroup>
+</select>
+</div>
+
+<div class="editor-toolbar">
+<p class="editor-hint">✏️ Edita directamente el texto. Lo resaltado en amarillo es lo que normalmente cambia (nombres, fechas, montos); puedes editar cualquier otra parte también.</p>
+<button type="button" class="btn-copy-plain" onclick="copiarElemento('carta-editor')">📋 Copiar texto</button>
+</div>
+<div id="carta-editor" class="documento-editable" contenteditable="true"></div>
+
+<button class="btn-generate" onclick="generarCarta()">📝 Generar Carta</button>
+</div>
+
+<!-- DOCUMENTO LEGAL INPUT -->
+<div id="legal-input" style="display:none;">
+<div class="document-options">
+<h3>⚖️ Tipo de Formato:</h3>
+<select id="legal-tipo" onchange="toggleCamposAPA()">
+<option value="transcripcion">Transcripción General</option>
+<option value="apa">Normas APA (Interlineado 2.0)</option>
+<option value="apa15">Normas APA (Interlineado 1.5)</option>
+<option value="legal">Documento Legal</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Título del Documento</label>
+<input type="text" id="legal-titulo" placeholder="Ej: Transcripción de Entrevista">
+</div>
+
+<div id="apa-extra-fields" class="form-grid" style="display:none; margin-bottom:15px;">
+<div class="form-group">
+<label>Autor(es)</label>
+<input type="text" id="legal-autor" placeholder="Ej: Juan Pérez García">
+</div>
+<div class="form-group">
+<label>Institución / Universidad</label>
+<input type="text" id="legal-institucion" placeholder="Ej: Universidad Nacional Autónoma de México">
+</div>
+<div class="form-group">
+<label>Materia / Curso</label>
+<input type="text" id="legal-materia" placeholder="Ej: Metodología de la Investigación">
+</div>
+<div class="form-group">
+<label>Profesor(a)</label>
+<input type="text" id="legal-profesor" placeholder="Ej: Dra. Ana López">
+</div>
+</div>
+
+<div class="form-grid">
+<div class="form-group">
+<label>Fecha</label>
+<input type="date" id="legal-fecha">
+</div>
+<div class="form-group">
+<label>Lugar</label>
+<input type="text" id="legal-lugar" placeholder="Ej: Ciudad de México">
+</div>
+</div>
+
+<textarea id="legal-texto" rows="15" placeholder="Pega aquí el contenido...
+
+Para transcripción legal usa formato:
+NOMBRE: texto
+
+Para APA: separa los párrafos con una línea en blanco.
+Si quieres incluir la lista de referencias, escribe la palabra REFERENCIAS sola en una línea, y debajo pega cada referencia en su propia línea (se les aplicará sangría francesa automáticamente)."></textarea>
+
+<button class="btn-generate" onclick="generarLegal()">⚖️ Generar Documento</button>
+</div>
+</div>
+
+<!-- PASO 3: VISTA PREVIA -->
+<div id="step-preview" class="step" style="display:none;">
+<div class="step-header">
+<span class="step-number">3</span>
+<h2>Vista Previa</h2>
+</div>
+
+<div class="preview-controls">
+<button class="btn-edit" onclick="editarDocumento()">✏️ Editar</button>
+<button class="btn-copy" onclick="copiarElemento('document-preview')">📋 Copiar Texto</button>
+<button class="btn-new" onclick="nuevoDocumento()">🔄 Nuevo Documento</button>
+</div>
+
+<!-- Selector de estilos (solo para CV) -->
+<div id="style-selector-cv" class="style-selector-preview" style="display:none;">
+<h3>🎨 Cambiar Estilo:</h3>
+<div class="style-buttons">
+<button class="style-btn active" onclick="cambiarEstiloCV('moderno', this)">Moderno</button>
+<button class="style-btn" onclick="cambiarEstiloCV('clasico', this)">Clásico</button>
+<button class="style-btn" onclick="cambiarEstiloCV('creativo', this)">Creativo</button>
+<button class="style-btn" onclick="cambiarEstiloCV('minimalista', this)">Minimalista</button>
+<button class="style-btn" onclick="cambiarEstiloCV('profesional', this)">Profesional</button>
+</div>
+</div>
+
+<div class="download-buttons">
+<button class="btn-download btn-pdf" onclick="descargarPDF()">📄 Descargar PDF</button>
+<button class="btn-download btn-word" onclick="descargarWord()">📝 Descargar Word</button>
+</div>
+
+<div id="document-preview" class="document-preview">
+<!-- Aquí se muestra el documento -->
+</div>
+</div>
+
+</main>
+
+<script src="generador.js"></script>
+</body>
+</html>
